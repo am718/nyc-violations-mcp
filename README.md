@@ -155,7 +155,7 @@ offline tests with recorded fixtures, and an explicit query-injection test.
 - One BIN per property. A lot with several buildings is reported with `other_bins_on_lot`, and DOB/ECB counts are for the chosen BIN only.
 - BIN/BBL inputs are resolved through DOB/HPD rows, so a valid BIN with no violation records anywhere cannot be resolved (use the address).
 - GeoSearch matches can be low confidence; the confidence is reported.
-- The summary needs ~9 upstream requests (1 req/sec), about 10 seconds on a cold cache.
+- The summary needs about 8-10 upstream requests (1 req/sec), roughly 10 seconds on a cold cache.
 - Datasets or field names can change; `docs/DATA.md` records what was verified on 2026-11-01.
 - Recorded test fixtures contain public record text, including ECB respondent names, as returned by NYC Open Data.
 
