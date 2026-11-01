@@ -1,0 +1,31 @@
+{
+  "name": "nyc-violations-mcp",
+  "version": "0.1.0",
+  "description": "Read-only MCP server for NYC building violations (DOB, ECB, HPD) from NYC Open Data",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "bin": {
+    "nyc-violations-mcp": "dist/src/index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "inspect": "npm run build && npx @modelcontextprotocol/inspector node dist/src/index.js",
+    "validate": "npm run build && node dist/scripts/validate.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "better-sqlite3": "^13.0.3",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}
