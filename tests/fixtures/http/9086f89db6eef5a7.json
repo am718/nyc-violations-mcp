@@ -1,0 +1,5 @@
+{
+ "url": "https://data.cityofnewyork.us/resource/wvxf-dwi5.json?%24select=bin%2C+housenumber%2C+streetname%2C+count%28*%29+as+n&%24where=bbl+%3D+%271008350042%27&%24group=bin%2C+housenumber%2C+streetname&%24order=n+DESC&%24limit=10",
+ "status": 200,
+ "body": "[]\n"
+}
