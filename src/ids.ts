@@ -9,14 +9,14 @@ export const BOROUGHS: Record<string, string> = {
 };
 
 /** BIN: 7 digits, first digit is the borough (1-5). Example: 1015862 (Empire State Building). */
-export const binSchema = z
+export const binSchema = z.coerce // coerce: some clients send identifiers as JSON numbers
   .string({ error: "bin must be a 7-digit NYC Building Identification Number given as text, e.g. \"1015862\"." })
   .trim()
   .regex(/^[1-5]\d{6}$/, "bin must be exactly 7 digits starting with 1-5 (the borough), e.g. \"1015862\".")
   .describe("7-digit NYC Building Identification Number (BIN), e.g. \"1015862\". First digit is the borough (1-5).");
 
 /** BBL: 10 digits = borough(1) + block(5) + lot(4). Hyphenated form 1-00835-0041 is also accepted. */
-export const bblSchema = z
+export const bblSchema = z.coerce
   .string({ error: "bbl must be a 10-digit Borough-Block-Lot number given as text, e.g. \"1008350041\"." })
   .trim()
   .regex(
@@ -46,7 +46,7 @@ export const statusSchema = z
   .describe("Filter by status: \"open\" or \"closed\". Omit for both.");
 
 export function limitSchema(def: number, max: number) {
-  return z
+  return z.coerce
     .number({ error: `limit must be a whole number from 1 to ${max} (default ${def}).` })
     .int(`limit must be a whole number from 1 to ${max} (default ${def}).`)
     .min(1, `limit must be at least 1 (max ${max}).`)

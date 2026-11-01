@@ -304,3 +304,18 @@ describe("cache and rate limiter", () => {
     expect(sleeps).toEqual([1000]); // second request waited the full interval
   });
 });
+
+describe("client leniency", () => {
+  it("accepts bin/bbl/limit sent as JSON numbers or numeric text, and applies the default limit", async () => {
+    const f = stubFetch([[{ n: "0" }], []]);
+    const server = createServer(makeResolver(f));
+    const [a, b] = InMemoryTransport.createLinkedPair();
+    const client = new Client({ name: "t", version: "0" });
+    await Promise.all([server.connect(a), client.connect(b)]);
+    const res = await client.callTool({ name: "get_dob_violations", arguments: { bin: 1015862, limit: "3" } });
+    expect(res.isError).toBeFalsy();
+    const res2 = await client.callTool({ name: "get_dob_violations", arguments: { bin: "1015862" } });
+    expect(res2.isError).toBeFalsy();
+    expect(JSON.parse((res2.content as { text: string }[])[0]!.text).query.limit).toBe(25);
+  });
+});

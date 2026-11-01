@@ -1,0 +1,207 @@
+{
+  "tools": [
+    {
+      "name": "resolve_property",
+      "title": "Resolve NYC property",
+      "description": "Normalize a NYC property to {address, bin, bbl, borough}. Give ONE of address, bin or bbl (bin and bbl may be given together to verify they match). Use this FIRST when you only have a street address, or to check that a BIN/BBL pair refers to the same property. Not for fetching violations: use the get_*_violations tools or building_compliance_summary after resolving.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 200,
+            "description": "NYC street address including borough, e.g. \"350 5th Ave, Manhattan\"."
+          },
+          "bin": {
+            "type": "string",
+            "pattern": "^[1-5]\\d{6}$",
+            "description": "7-digit NYC Building Identification Number (BIN), e.g. \"1015862\". First digit is the borough (1-5)."
+          },
+          "bbl": {
+            "type": "string",
+            "pattern": "^([1-5]\\d{9}|[1-5]-\\d{1,5}-\\d{1,4})$",
+            "description": "10-digit Borough-Block-Lot (BBL), e.g. \"1008350041\" (also accepts \"1-00835-0041\")."
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "get_dob_violations",
+      "title": "DOB violations for a building",
+      "description": "List NYC Department of Buildings (DOB) violations for one building by BIN, newest first. Use for the DOB record of a specific building (elevator, construction, work without permit, etc.). Not for ECB penalties/hearings (use get_ecb_violations), residential housing-maintenance violations (use get_hpd_violations), or an overview (use building_compliance_summary). Open/closed is a heuristic: open means \"ACTIVE\" appears in the record's category.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "bin": {
+            "type": "string",
+            "pattern": "^[1-5]\\d{6}$",
+            "description": "7-digit NYC Building Identification Number (BIN), e.g. \"1015862\". First digit is the borough (1-5)."
+          },
+          "status": {
+            "description": "Filter by status: \"open\" or \"closed\". Omit for both.",
+            "type": "string",
+            "enum": [
+              "open",
+              "closed"
+            ]
+          },
+          "limit": {
+            "default": 25,
+            "description": "Max records to return (1-100, default 25).",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "bin"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "get_ecb_violations",
+      "title": "ECB violations for a building",
+      "description": "List DOB ECB (Environmental Control Board / OATH) violations for one building by BIN, newest first, including severity, hearing status and penalty balance. Use when the question is about penalties, hearings or amounts owed. Not for DOB violation records themselves (use get_dob_violations) or HPD housing violations (use get_hpd_violations).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "bin": {
+            "type": "string",
+            "pattern": "^[1-5]\\d{6}$",
+            "description": "7-digit NYC Building Identification Number (BIN), e.g. \"1015862\". First digit is the borough (1-5)."
+          },
+          "status": {
+            "description": "Filter by status: \"open\" or \"closed\". Omit for both.",
+            "type": "string",
+            "enum": [
+              "open",
+              "closed"
+            ]
+          },
+          "limit": {
+            "default": 25,
+            "description": "Max records to return (1-100, default 25).",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "bin"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "get_hpd_violations",
+      "title": "HPD housing violations for a building",
+      "description": "List HPD (Housing Preservation & Development) housing-maintenance violations (Class A/B/C) by bbl or bin, newest first. Use for residential conditions: heat, pests, leaks, etc. HPD covers residential buildings only: an empty result for a commercial building means no coverage expected, not compliance. Not for DOB or ECB records. If you pass both bin and bbl they must refer to the same property.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "bbl": {
+            "type": "string",
+            "pattern": "^([1-5]\\d{9}|[1-5]-\\d{1,5}-\\d{1,4})$",
+            "description": "10-digit Borough-Block-Lot (BBL), e.g. \"1008350041\" (also accepts \"1-00835-0041\")."
+          },
+          "bin": {
+            "type": "string",
+            "pattern": "^[1-5]\\d{6}$",
+            "description": "7-digit NYC Building Identification Number (BIN), e.g. \"1015862\". First digit is the borough (1-5)."
+          },
+          "status": {
+            "description": "Filter by status: \"open\" or \"closed\". Omit for both.",
+            "type": "string",
+            "enum": [
+              "open",
+              "closed"
+            ]
+          },
+          "limit": {
+            "default": 25,
+            "description": "Max records to return (1-100, default 25).",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "building_compliance_summary",
+      "title": "Building compliance summary",
+      "description": "Best first call for \"what is the violation situation at this property?\". Takes ONE of address, bin or bbl and returns open vs closed counts per agency (DOB, ECB, HPD), the most recent issue date, the 5 most recent open items (one line each) and links to the source records. Makes several upstream requests, so it can take ~10 seconds on a cold cache. Use the get_*_violations tools afterwards only if you need full details of one agency.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 200,
+            "description": "NYC street address including borough, e.g. \"350 5th Ave, Manhattan\"."
+          },
+          "bin": {
+            "type": "string",
+            "pattern": "^[1-5]\\d{6}$",
+            "description": "7-digit NYC Building Identification Number (BIN), e.g. \"1015862\". First digit is the borough (1-5)."
+          },
+          "bbl": {
+            "type": "string",
+            "pattern": "^([1-5]\\d{9}|[1-5]-\\d{1,5}-\\d{1,4})$",
+            "description": "10-digit Borough-Block-Lot (BBL), e.g. \"1008350041\" (also accepts \"1-00835-0041\")."
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "MCP error -32602: Input validation error: Invalid arguments for tool get_dob_violations: bin must be exactly 7 digits starting with 1-5 (the borough), e.g. \"1015862\". at bin"
+    }
+  ],
+  "isError": true
+}
