@@ -21,7 +21,13 @@ violation_category, violation_type.
 - Dates are text `YYYYMMDD` (e.g. `19880802`). No explicit status column: status is encoded in `violation_category`
   (values seen: `V-DOB VIOLATION - ACTIVE`, `V*-DOB VIOLATION - Resolved`, `V*-DOB VIOLATION - DISMISSED`, and
   W/O-permit / unserved-ECB variants with `ACTIVE` or `DISMISSED`). Rule to decide: ACTIVE in category = open.
-  UNVERIFIED mapping edge case: 13 ACTIVE rows carry a disposition_date.
+  Edge case (verified): 13 ACTIVE rows carry a `disposition_date` (10 say "DELETED BY ... BECAUSE DUPLICATE/..."; 2 say
+  "PAID INVOICE"; 1 has the junk date "7"), and many more ACTIVE rows carry `disposition_comments` without a date
+  (all 7 ACTIVE records at the Empire State Building say "DELETED BY ... BECAUSE ..."). They are still classed **open**
+  by the rule, with a per-item `caveat` and a summary-level `open_with_disposition_notes` count.
+  The 13 rows are recorded in `tests/fixtures/dob_active_with_disposition.json` and tested in `tests/status-and-dates.test.ts`.
+- DOB/ECB `block` and `lot` are zero-padded 5-digit text (lot `00041`); a BBL's lot is 4 digits (`0041`). A BBL maps to
+  DOB/ECB rows via `boro` + `block` + `lot` (`0` prepended to the BBL lot). Verified live.
 - Text fields are space-padded (`violation_type`).
 
 **ECB (`6bgk-3dad`)**: isn_dob_bis_extract, ecb_violation_number, ecb_violation_status, dob_violation_number, bin, boro,
@@ -39,6 +45,21 @@ novdescription, novissueddate, currentstatusid, currentstatus, currentstatusdate
 rentimpairing, latitude, longitude, communityboard, councildistrict, censustract, bin, bbl, nta.
 - `violationstatus` values: `Open`, `Close`. Dates are ISO timestamps (`2026-10-31T00:00:00.000`).
 - HPD covers residential housing maintenance only; commercial buildings (e.g. Empire State Building) return no rows.
+
+## Status mapping (one place: `src/status.ts`)
+
+| Dataset | Column | open | closed | other |
+|---|---|---|---|---|
+| DOB | `violation_category` | contains `ACTIVE` (**heuristic**) | contains `Resolved` or `DISMISSED` | `unknown` |
+| ECB | `ecb_violation_status` | `ACTIVE` | `RESOLVE` | `Unknown`/missing -> `unknown` |
+| HPD | `violationstatus` | `Open` | `Close` | `unknown` |
+
+The DOB rule is a heuristic because the dataset has no explicit open/closed column. ECB "open" includes ACTIVE records whose
+hearing status is e.g. `WRITTEN OFF` (59,165 citywide rows); the hearing status is returned per record.
+
+## Dates (one place: `normalizeDate` in `src/normalize.ts`)
+DOB/ECB `YYYYMMDD` text and HPD ISO timestamps are normalized to `YYYY-MM-DD` before merging/sorting. Unparseable values
+become `null` (sorted last). HPD "issue date" = `novissueddate` (falls back to `inspectiondate`).
 
 ## Caveats
 - Open data lags official systems (DOB BIS/DOB NOW, HPD, OATH). Counts can differ from the city's live property pages.

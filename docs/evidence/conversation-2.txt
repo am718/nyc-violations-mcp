@@ -1,0 +1,3 @@
+No HPD violation records turned up for 350 5th Ave (BBL 1008350041, BIN 1015862). That doesn't show the building is clean. This address is the Empire State Building, which is commercial. HPD only covers residential buildings, so it wouldn't be expected to have records there.
+
+The address match had only 0.8 confidence, so confirm the BBL is the right property. To check compliance, look at DOB and ECB violations, which I can pull if you want. Open-data extracts can also lag the city's official systems.
