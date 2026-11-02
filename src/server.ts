@@ -52,7 +52,8 @@ export function createServer(r: Resolver): McpServer {
         "List NYC Department of Buildings (DOB) violations for one building by BIN, newest first. Use for the DOB record of a specific " +
         "building (elevator, construction, work without permit, etc.). Not for ECB penalties/hearings (use get_ecb_violations), " +
         "residential housing-maintenance violations (use get_hpd_violations), or an overview (use building_compliance_summary). " +
-        'Open/closed is a heuristic: open means "ACTIVE" appears in the record\'s category.',
+        'Open/closed is a heuristic: open means "ACTIVE" appears in the record\'s category, and some "open" records are annotated as deleted (flagged per record).' +
+        ' Responses are capped at ~12,000 characters, so a large limit can return fewer records (see `truncated`); recency lists contain dated records only (see `undated_excluded`).',
       inputSchema: { bin: binSchema, status: statusSchema, limit },
       annotations: READ_ONLY,
     },
@@ -66,7 +67,8 @@ export function createServer(r: Resolver): McpServer {
       description:
         "List DOB ECB (Environmental Control Board / OATH) violations for one building by BIN, newest first, including severity, " +
         "hearing status and penalty balance. Use when the question is about penalties, hearings or amounts owed. Not for DOB " +
-        "violation records themselves (use get_dob_violations) or HPD housing violations (use get_hpd_violations).",
+        "violation records themselves (use get_dob_violations) or HPD housing violations (use get_hpd_violations). ACTIVE records with hearing status WRITTEN OFF are flagged per record." +
+        " Responses are capped at ~12,000 characters, so a large limit can return fewer records (see `truncated`); recency lists contain dated records only (see `undated_excluded`).",
       inputSchema: { bin: binSchema, status: statusSchema, limit },
       annotations: READ_ONLY,
     },
@@ -81,7 +83,8 @@ export function createServer(r: Resolver): McpServer {
         "List HPD (Housing Preservation & Development) housing-maintenance violations (Class A/B/C) by bbl or bin, newest first. " +
         "Use for residential conditions: heat, pests, leaks, etc. HPD covers residential buildings only: an empty result for a " +
         "commercial building means no coverage expected, not compliance. Not for DOB or ECB records. If you pass both bin and bbl " +
-        "they must refer to the same property.",
+        "they must refer to the same property. A bbl covers the whole tax lot (possibly many buildings); a bin covers one building." +
+        " Responses are capped at ~12,000 characters, so a large limit can return fewer records (see `truncated`); recency lists contain dated records only (see `undated_excluded`).",
       inputSchema: { bbl: bblSchema.optional(), bin: binSchema.optional(), status: statusSchema, limit },
       annotations: READ_ONLY,
     },
@@ -99,7 +102,8 @@ export function createServer(r: Resolver): McpServer {
         "Best first call for \"what is the violation situation at this property?\". Takes ONE of address, bin or bbl and returns open " +
         "vs closed counts per agency (DOB, ECB, HPD), the most recent issue date, the 5 most recent open items (one line each) and " +
         "links to the source records. Makes several upstream requests, so it can take ~10 seconds on a cold cache. Use the " +
-        "get_*_violations tools afterwards only if you need full details of one agency.",
+        "get_*_violations tools afterwards only if you need full details of one agency. Counts DOB, ECB and HPD for the one resolved BIN (see `footprint`); " +
+        "read `data_quality_notes` first. Results are cached for an hour, so do not call it repeatedly for the same property.",
       inputSchema: { address: addressSchema.optional(), bin: binSchema.optional(), bbl: bblSchema.optional() },
       annotations: READ_ONLY,
     },

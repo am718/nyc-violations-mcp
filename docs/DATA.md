@@ -88,6 +88,9 @@ become `null` (sorted last). HPD "issue date" = `novissueddate` (falls back to `
   out (`undated_excluded`, `open_undated_excluded_from_recent_list`). `total_matching` and the open/closed counts still include them.
 - `most_recent_issue_date` is `max()` over dated rows only.
 
+## Untrusted text
+Descriptions, comments and category text come from public records. They are truncated, control-stripped and returned as data. They also feed classification (DOB category `ACTIVE`, comment `DELETED`, ECB hearing status), so a crafted record could change a record's open/closed bucket, but nothing in the server follows instructions found in text.
+
 ## Caveats
 - Open data lags official systems (DOB BIS/DOB NOW, HPD, OATH). Counts can differ from the city's live property pages.
 - Dataset IDs and fields can change; re-verify before relying on them.

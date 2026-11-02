@@ -135,6 +135,7 @@ HPD uses `Open`/`Close`. All three mappings live in `src/status.ts`.
 - No user text is ever placed into a Socrata query. Only digit-validated BIN/BBL parts are embedded (`src/socrata.ts`), fields and
   dataset ids are constants, and free-text addresses go only to GeoSearch as a URL-encoded parameter.
 - Inputs are validated with zod; errors say what a valid value looks like.
+- Record text is returned as data, but it can still influence a model that reads it. Responses put the untrusted-text notice and an `untrusted_text_fields` list before the data. Note that record text also drives status classification (a DOB category containing `ACTIVE` counts as open); that is classification, not instruction-following.
 - 1 request/second, retry with exponential backoff, request timeout, SQLite TTL cache.
 
 ## How this compares to other servers
@@ -159,7 +160,9 @@ offline tests with recorded fixtures, and an explicit query-injection test.
 - GeoSearch matches can be low confidence; the confidence is reported.
 - The summary needs about 10-12 upstream requests (1 req/sec), roughly 12 seconds on a cold cache.
 - Datasets or field names can change; `docs/DATA.md` records what was verified on 2026-11-01.
-- Recorded test fixtures contain public record text, including ECB respondent names, as returned by NYC Open Data.
+- Recorded test fixtures are real NYC Open Data responses with ECB `respondent_*` fields replaced by placeholders (the free-text violation descriptions are unmodified public text).
+- Responses are capped at ~12,000 characters, so a large `limit` can return fewer records (see `truncated`); recency lists contain dated records only and report `undated_excluded`.
+- Worst-case latency is long when the upstream is failing (3 attempts of up to 15 s per request, plus backoff). The 1 req/sec limiter is per process.
 
 ## What I would build next
 

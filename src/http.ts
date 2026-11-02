@@ -6,6 +6,7 @@ export type FetchLike = (url: string, init?: { headers?: Record<string, string>;
   ok: boolean;
   status: number;
   text(): Promise<string>;
+  headers?: { get(name: string): string | null };
 }>;
 
 export interface HttpDeps {
@@ -14,6 +15,12 @@ export interface HttpDeps {
   settings: Settings;
   sleep?: (ms: number) => Promise<void>;
   now?: () => number;
+}
+
+/** Retry-After in seconds (HTTP-date form is ignored), capped at 10 s so a bad header cannot stall the server. */
+export function parseRetryAfter(v: string | null): number {
+  if (v === null || !/^\d{1,4}$/.test(v.trim())) return 0;
+  return Math.min(Number(v.trim()), 10) * 1000;
 }
 
 export interface JsonResult {
@@ -43,6 +50,7 @@ export class HttpClient {
 
     let lastErr = "unknown error";
     for (let attempt = 1; attempt <= settings.maxAttempts; attempt++) {
+      let retryAfterMs = 0;
       await this.throttle();
       try {
         const res = await this.deps.fetch(url, { headers, signal: AbortSignal.timeout(settings.timeoutMs) });
@@ -58,6 +66,7 @@ export class HttpClient {
           return { json, fetchedAt, fromCache: false };
         }
         lastErr = `HTTP ${res.status}`;
+        retryAfterMs = parseRetryAfter(res.headers?.get("retry-after") ?? null);
         if (res.status !== 429 && res.status < 500) {
           throw new ToolError(
             `The upstream service rejected the request (HTTP ${res.status}). Check the input values and try again.`,
@@ -67,7 +76,7 @@ export class HttpClient {
         if (e instanceof ToolError) throw e;
         lastErr = e instanceof Error && (e.name === "TimeoutError" || e.name === "AbortError") ? "timeout" : "network error";
       }
-      if (attempt < settings.maxAttempts) await this.sleep(settings.backoffBaseMs * 2 ** (attempt - 1));
+      if (attempt < settings.maxAttempts) await this.sleep(Math.max(settings.backoffBaseMs * 2 ** (attempt - 1), retryAfterMs));
     }
     throw new ToolError(
       `NYC Open Data did not respond after ${settings.maxAttempts} attempts (${lastErr}). ` +

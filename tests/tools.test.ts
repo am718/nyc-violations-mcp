@@ -8,7 +8,7 @@ import { digits, locatorClause } from "../src/socrata.js";
 import { resolvePropertyTool } from "../src/tools/resolve.js";
 import { buildingComplianceSummary } from "../src/tools/summary.js";
 import { getDobViolations, getEcbViolations, getHpdViolations } from "../src/tools/violations.js";
-import { fixtureFetch, makeResolver, stubFetch } from "./helpers.js";
+import { fixtureFetch, makeResolver, scriptedFetch, stubFetch } from "./helpers.js";
 
 const ESB = { address: "350 5th Ave, Manhattan", bin: "1015862", bbl: "1008350041" };
 
@@ -441,5 +441,32 @@ describe("fix 3: open counts that do not mislead (recorded live)", () => {
     const keys = Object.keys(out);
     expect(keys.indexOf("notice")).toBeLessThan(keys.indexOf("violations"));
     expect(out.untrusted_text_fields).toContain("violations[].description");
+  });
+});
+
+describe("minor findings: Retry-After and app token handling", () => {
+  it("honours Retry-After (seconds, capped at 10 s) when it is longer than the backoff", async () => {
+    const sleeps: number[] = [];
+    const f = scriptedFetch([{ status: 429, headers: { "retry-after": "3" } }, { status: 200, body: [{ n: "0" }] }, { body: [{ n: "0" }] }, { body: [] }]);
+    await getDobViolations(makeResolver(f, { sleep: async (ms) => void sleeps.push(ms) }), { bin: ESB.bin, limit: 5 });
+    expect(sleeps).toContain(3000);
+    const g = scriptedFetch([{ status: 429, headers: { "retry-after": "9999" } }, { body: [{ n: "0" }] }, { body: [{ n: "0" }] }, { body: [] }]);
+    const sl2: number[] = [];
+    await getDobViolations(makeResolver(g, { sleep: async (ms) => void sl2.push(ms) }), { bin: ESB.bin, limit: 5 });
+    expect(Math.max(...sl2)).toBe(10_000); // a huge Retry-After is capped at 10 s
+  });
+  it("sends X-App-Token only to the Socrata host, never in a URL or cache key; works without a token", async () => {
+    const FAKE = "fake-token-for-test-only";
+    const cache = new Cache(":memory:", 60_000);
+    const f = scriptedFetch([{ body: { features: [] } }, { body: [{ n: "0" }] }]);
+    const r = makeResolver(f, { settings: { appToken: FAKE }, cache });
+    await r.http.getJson("https://geosearch.planninglabs.nyc/v2/search?text=x&size=1");
+    await r.http.getJson("https://data.cityofnewyork.us/resource/3h2n-5cm9.json?%24limit=1");
+    expect(f.calls[0]!.headers["X-App-Token"]).toBeUndefined();
+    expect(f.calls[1]!.headers["X-App-Token"]).toBe(FAKE);
+    for (const c of f.calls) expect(c.url).not.toContain(FAKE);
+    const g = scriptedFetch([{ body: [] }]);
+    await makeResolver(g).http.getJson("https://data.cityofnewyork.us/resource/3h2n-5cm9.json?%24limit=2");
+    expect(g.calls[0]!.headers["X-App-Token"]).toBeUndefined();
   });
 });

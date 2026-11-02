@@ -51,3 +51,22 @@ export function stubFetch(responses: (unknown | Error | { status: number })[]): 
   fn.calls = calls;
   return fn;
 }
+
+/** Like stubFetch but lets a test script exact responses incl. headers, and captures request headers. */
+export function scriptedFetch(script: { status?: number; body?: unknown; headers?: Record<string, string> }[]) {
+  const calls: { url: string; headers: Record<string, string> }[] = [];
+  let i = 0;
+  const fn = (async (url: string, init?: { headers?: Record<string, string> }) => {
+    calls.push({ url, headers: init?.headers ?? {} });
+    const r = script[Math.min(i++, script.length - 1)]!;
+    const status = r.status ?? 200;
+    return {
+      ok: status >= 200 && status < 300,
+      status,
+      text: async () => JSON.stringify(r.body ?? []),
+      headers: { get: (n: string) => r.headers?.[n.toLowerCase()] ?? null },
+    };
+  }) as FetchLike & { calls: typeof calls };
+  fn.calls = calls;
+  return fn;
+}
