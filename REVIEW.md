@@ -10,13 +10,13 @@ A TypeScript MCP server (official `@modelcontextprotocol/sdk`, stdio, zod valida
 It queries three NYC Open Data Socrata datasets (DOB `3h2n-5cm9`, ECB `6bgk-3dad`, HPD `wvxf-dwi5`) and uses NYC Planning Labs
 GeoSearch for address -> BIN/BBL. It has a SQLite TTL cache, 1 req/sec limiter, retry with backoff, request timeout, a
 response-size cap, a single place for per-dataset status mapping and for date normalization, coverage notes instead of bare
-zeros for HPD, 64 offline vitest tests with recorded fixtures, inspector scripts, a 10-building validation, README and docs.
+zeros for HPD, 251 offline vitest tests with recorded fixtures, inspector scripts, a 10-building validation, README and docs.
 
 ## 2. How to run
 
 ```bash
 npm install && npm run build
-npm test                           # 64 tests, offline; tests/setup-no-network.ts makes any global fetch throw
+npm test                           # 251 tests, offline; tests/setup-no-network.ts makes any global fetch throw
 bash scripts/inspect.sh            # Inspector web UI
 bash scripts/inspect.sh --cli --method tools/list
 bash scripts/inspector-check.sh    # all 5 tools via Inspector CLI, LIVE network, writes docs/evidence/inspector-*.json
@@ -105,23 +105,46 @@ returned as data, and accompanied by the notice. There is no sanitization of ins
 
 ## 7. Fixes (second pass, responding to [REVIEW_REPORT.md](docs/reviews/REVIEW_REPORT.md); that report is unchanged apart from removing local paths)
 
-Commits are listed oldest to newest. The hashes are those of the **rewritten** history (author/committer set to the GitHub noreply address; old fixtures scrubbed of ECB respondent names). The pre-rewrite history exists only in a backup bundle kept outside the repo.
+Commits are listed oldest to newest. The hashes are those of the **rewritten** history (author/committer set to the GitHub noreply address; old fixtures scrubbed of ECB respondent names; session trailers and local paths removed in a second rewrite). Earlier histories exist only in backup bundles kept outside the repo.
 
 | Finding ([REVIEW_REPORT.md](docs/reviews/REVIEW_REPORT.md)) | Status | Commit | What changed / evidence |
 |---|---|---|---|
-| M1 summary mixes BIN and lot footprints; README:155 false | Fixed | `655341e` Fix 1 | DOB, ECB, HPD all by the resolved BIN; `footprint` + `other_bins_on_lot` always returned; README corrected. Tests "fix 1: consistent footprint" with a recorded Stuyvesant Town lot |
-| M2 HPD "newest first" wrong (NULLs first) | Fixed | `653ff44` Fix 2 | Verified live: NULLs sort first on DESC, `NULLS LAST` accepted but not relied on. Recency queries filter to dated rows; `undated_excluded` reported. Same check applied to DOB/ECB: junk text dates (e.g. `Y30819`) sorted above real ones, now filtered. Tests "fix 2" (live fixtures + synthetic junk) |
-| M3 "open" counts mislead; warnings buried | Fixed (heuristic, documented) | `720a0d4` Fix 3 | Raw `open` kept; added DOB `open_excluding_deleted` and ECB `open_excluding_written_off`; `data_quality_notes` is the first key of the summary; flagged items marked, not reclassified. docs/DATA.md and README document the rule. Tests "fix 3" (Empire State 7 raw / 0 excluding; Grand Central ECB) |
-| m1 `limit` max 100 vs size cap | Fixed (documented) | `4288686` Fix 4 | Tool descriptions and README state the ~12,000-char cap and `truncated`. Also fixed in `720a0d4`: the cap was exceeded by ~160 chars because truncation fields were added after measuring |
-| m2 fixtures hold respondent names; personal author email | Fixed (new fixtures and rewritten history) | `655341e` (redaction at record time) | History rewritten: every commit has the noreply author/committer and redacted fixtures. `LICENSE` keeps the user's full name by the user's decision |
-| m3 untrusted-text notice placement | Fixed | `720a0d4`, `4288686` | `notice` and `untrusted_text_fields` precede the data in every response; docs note that record text also drives classification |
+| M1 summary mixes BIN and lot footprints; README:155 false | Fixed | `fd333b4` Fix 1 | DOB, ECB, HPD all by the resolved BIN; `footprint` + `other_bins_on_lot` always returned; README corrected. Tests "fix 1: consistent footprint" with a recorded Stuyvesant Town lot |
+| M2 HPD "newest first" wrong (NULLs first) | Fixed | `62f44c4` Fix 2 | Verified live: NULLs sort first on DESC, `NULLS LAST` accepted but not relied on. Recency queries filter to dated rows; `undated_excluded` reported. Same check applied to DOB/ECB: junk text dates (e.g. `Y30819`) sorted above real ones, now filtered. Tests "fix 2" (live fixtures + synthetic junk) |
+| M3 "open" counts mislead; warnings buried | Fixed (heuristic, documented) | `f4f8439` Fix 3 | Raw `open` kept; added DOB `open_excluding_deleted` and ECB `open_excluding_written_off`; `data_quality_notes` is the first key of the summary; flagged items marked, not reclassified. docs/DATA.md and README document the rule. Tests "fix 3" (Empire State 7 raw / 0 excluding; Grand Central ECB) |
+| m1 `limit` max 100 vs size cap | Fixed (documented) | `56f61fd` Fix 4 | Tool descriptions and README state the ~12,000-char cap and `truncated`. Also fixed in `f4f8439`: the cap was exceeded by ~160 chars because truncation fields were added after measuring |
+| m2 fixtures hold respondent names; personal author email | Fixed (new fixtures and rewritten history) | `fd333b4` (redaction at record time) | History rewritten: every commit has the noreply author/committer and redacted fixtures. `LICENSE` keeps the user's full name by the user's decision |
+| m3 untrusted-text notice placement | Fixed | `f4f8439`, `56f61fd` | `notice` and `untrusted_text_fields` precede the data in every response; docs note that record text also drives classification |
 | m4 case-sensitive status enum | Deliberately not fixed (reason was wrong; see Fixes 2) | n/a | The original reason ("a case-insensitive pre-process would erase the `enum` from the JSON schema") was incorrect: `z.preprocess(lowercase, z.enum(...))` keeps the enum in the published schema. Only a `transform(...).pipe(...)` form loses it. Fixed in the second pass |
 | m5 loose coercion (arrays accepted; unknown keys ignored) | Deliberately not fixed | n/a | Harmless (verified the emitted query is unchanged); the SDK builds a non-strict object from the shape, and rejecting arrays would also require dropping the clean JSON schema |
-| m6 Retry-After ignored; per-process limiter; no token test; index.ts untested | Partly fixed | `4288686` | Retry-After honored (capped at 10 s) and tested; X-App-Token header unit test (fake token). Not fixed: per-process limiter (documented), `src/index.ts` wiring untested (listed above), worst-case latency (documented) |
-| m7 summary performance | Mitigated | `4288686` | Summary makes 13 upstream requests (measured 12.1 s, later 17.9-23.7 s cold; at least ~12 s because of the 1 req/s limit); tool description says so and that results are cached for an hour |
+| m6 Retry-After ignored; per-process limiter; no token test; index.ts untested | Partly fixed | `56f61fd` | Retry-After honored (capped at 10 s) and tested; X-App-Token header unit test (fake token). Not fixed: per-process limiter (documented), `src/index.ts` wiring untested (listed above), worst-case latency (documented) |
+| m7 summary performance | Mitigated | `56f61fd` | Summary makes 13 upstream requests (measured 12.1 s, later 17.9-23.7 s cold; at least ~12 s because of the 1 req/s limit); tool description says so and that results are cached for an hour |
 
 Re-verification after the fixes: `npm test` (64 passing, no-network guard on), `scripts/inspector-check.sh` (all 5 tools, evidence refreshed), `npm run validate`
 (10 of 10 buildings match independent direct queries, by BIN; `docs/VALIDATION.md` regenerated; web-UI comparison still UNVERIFIED), example conversations regenerated
 with the fixed server (`docs/evidence/conversation-*.txt`).
+
+## 8. Fixes 2 (responding to [REVIEW_REPORT_INDEPENDENT.md](docs/reviews/REVIEW_REPORT_INDEPENDENT.md); that report is unchanged apart from removing local paths)
+
+The history was rewritten again for items 2 and 3, so these are the hashes **after** that rewrite. A backup bundle of each earlier history is kept outside the repo.
+The session-link trailer is no longer added to commits; the Co-Authored-By line is kept.
+
+| Finding | Status | Commit | What changed / evidence |
+|---|---|---|---|
+| M1 placeholder BINs accepted (and the analogous BBL placeholders) | Fixed | `7100bf1` Fix 1 | `X000000` BINs rejected in every tool, in GeoSearch/DOB-derived values and in the query builder, with "use the address". BBL placeholders verified live (DOB 5,842 rows with block/lot 00000 across 811 BINs; ECB 178) and rejected the same way (block 00000/99999 or lot 0000). `tests/placeholder-bins.test.ts` |
+| M2 session link in all commit messages | Fixed | whole history (rewrite) | Every `session-link:` trailer removed from all commits; author and committer stay the noreply identity. Verified by the history search commands in the session transcript |
+| Local paths, username, session ids in docs and history | Fixed | `f2aa80c` Fix 3 + history rewrite | Review reports moved to `docs/reviews/` and linked; absolute paths and scratch directory references removed from the tree and from every commit; an accidentally tracked `.vitest/` output file (it held absolute paths) removed and ignored |
+| m1 `status` enum rationale wrong | Fixed | `0781d03` Fix 4 | `z.preprocess(lowercase, z.enum(...))`: any letter case accepted, enum still published (verified through the MCP SDK `tools/list`). The wrong rationale in the Fixes table row m4 above is corrected |
+| m2 impossible dates pass the filter | Fixed | `0781d03` Fix 4 | SoQL now requires a real month/day (10 more DOB rows excluded live, e.g. `19108124`); Feb 29 in a non-leap year (3 DOB rows) is caught in code; both count toward `undated_excluded` (verified live for BIN 1081244) |
+| m3 `limit` accepts odd values | Fixed | `0781d03` Fix 4 | Only integers or plain digit strings 1-100; rejects booleans, hex, floats, exponents, signs, padding, arrays |
+| 127 hostile inputs only existed in a scratch script | Fixed | `0781d03` Fix 4 | `tests/hostile-inputs.test.ts`: 160 cases with expected outcomes and a strict URL allowlist |
+| m4 latency / request counts inconsistent | Fixed | `7fc3fdb` Fix 6 | Summary = 13 upstream requests at 1 req/s (at least ~12 s cold); measured 12.1 s earlier and 17.9-23.7 s on re-measure; stated in the tool description, README and this file |
+| m5 DOB/ECB descriptions lack the resolve_property hint | Fixed | `b107c13` Fix 5 | "Requires a BIN: if you only have an address, or are unsure of the BIN, call resolve_property first" |
+| m6 HPD schema has no `required` | Fixed (best the SDK allows) | `b107c13` Fix 5 | Published as an object with `anyOf: [{required:[bbl]},{required:[bin]}]` plus a clear runtime error; tests over the published schema |
+| m7 `REVIEW_REPORT.md` in history | Kept on purpose | `f2aa80c` | Both reports are kept under `docs/reviews/` as an honest record |
+| Web-UI full-text search note | Documented | `7fc3fdb` Fix 6 | `docs/VALIDATION.md`: UI search is full text, totals can be +1; `$q` matches the UI exactly |
+
+Still UNVERIFIED: Claude Desktop config; a live Socrata app token (header logic is unit tested with a fake token); comparison with the official city systems
+(DOB BIS/NOW, HPD Online, OATH); whether GeoSearch ever returns a placeholder BIN for a real address (guarded either way).
 
 Checklist status: see the final message in the session; this file is the evidence index.

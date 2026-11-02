@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "MCP error -32602: Input validation error: Invalid arguments for tool get_hpd_violations: bin ends in 000000: that is a borough-level placeholder meaning \"building unknown\", not a real building, and thousands of unrelated records share it. Use resolve_property with the street address (e.g. \"350 5th Ave, Manhattan\") to get the building's real BIN. at bin"
+    }
+  ],
+  "isError": true
+}

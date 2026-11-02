@@ -16,3 +16,5 @@ run inspector-get_ecb_violations --method tools/call --tool-name get_ecb_violati
 run inspector-get_hpd_violations --method tools/call --tool-name get_hpd_violations --tool-arg bbl=2046540021 --tool-arg status=open --tool-arg limit=3
 run inspector-building_compliance_summary --method tools/call --tool-name building_compliance_summary --tool-arg 'address=350 5th Ave, Manhattan'
 run inspector-error-bad-bin --method tools/call --tool-name get_dob_violations --tool-arg "bin=1015862' OR '1'='1"
+run inspector-error-placeholder-bin --method tools/call --tool-name get_hpd_violations --tool-arg bin=1000000
+run inspector-status-any-case --method tools/call --tool-name get_dob_violations --tool-arg bin=1015862 --tool-arg status=OPEN --tool-arg limit=2

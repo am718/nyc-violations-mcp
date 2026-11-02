@@ -39,7 +39,7 @@
     {
       "name": "get_dob_violations",
       "title": "DOB violations for a building",
-      "description": "List NYC Department of Buildings (DOB) violations for one building by BIN, newest first. Use for the DOB record of a specific building (elevator, construction, work without permit, etc.). Not for ECB penalties/hearings (use get_ecb_violations), residential housing-maintenance violations (use get_hpd_violations), or an overview (use building_compliance_summary). Open/closed is a heuristic: open means \"ACTIVE\" appears in the record's category, and some \"open\" records are annotated as deleted (flagged per record). Responses are capped at ~12,000 characters, so a large limit can return fewer records (see `truncated`); recency lists contain dated records only (see `undated_excluded`).",
+      "description": "List NYC Department of Buildings (DOB) violations for one building by BIN, newest first. Requires a BIN: if you only have an address, or are unsure of the BIN, call resolve_property first. Use for the DOB record of a specific building (elevator, construction, work without permit, etc.). Not for ECB penalties/hearings (use get_ecb_violations), residential housing-maintenance violations (use get_hpd_violations), or an overview (use building_compliance_summary). Open/closed is a heuristic: open means \"ACTIVE\" appears in the record's category, and some \"open\" records are annotated as deleted (flagged per record). Responses are capped at ~12,000 characters, so a large limit can return fewer records (see `truncated`); recency lists contain dated records only (see `undated_excluded`).",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -49,7 +49,7 @@
             "description": "7-digit NYC Building Identification Number (BIN), e.g. \"1015862\". First digit is the borough (1-5)."
           },
           "status": {
-            "description": "Filter by status: \"open\" or \"closed\". Omit for both.",
+            "description": "Filter by status: \"open\" or \"closed\" (any letter case). Omit for both.",
             "type": "string",
             "enum": [
               "open",
@@ -57,7 +57,6 @@
             ]
           },
           "limit": {
-            "default": 25,
             "description": "Max records to return (1-100, default 25).",
             "type": "integer",
             "minimum": 1,
@@ -82,7 +81,7 @@
     {
       "name": "get_ecb_violations",
       "title": "ECB violations for a building",
-      "description": "List DOB ECB (Environmental Control Board / OATH) violations for one building by BIN, newest first, including severity, hearing status and penalty balance. Use when the question is about penalties, hearings or amounts owed. Not for DOB violation records themselves (use get_dob_violations) or HPD housing violations (use get_hpd_violations). ACTIVE records with hearing status WRITTEN OFF are flagged per record. Responses are capped at ~12,000 characters, so a large limit can return fewer records (see `truncated`); recency lists contain dated records only (see `undated_excluded`).",
+      "description": "List DOB ECB (Environmental Control Board / OATH) violations for one building by BIN, newest first, including severity, hearing status and penalty balance. Requires a BIN: if you only have an address, or are unsure of the BIN, call resolve_property first. Use when the question is about penalties, hearings or amounts owed. Not for DOB violation records themselves (use get_dob_violations) or HPD housing violations (use get_hpd_violations). ACTIVE records with hearing status WRITTEN OFF are flagged per record. Responses are capped at ~12,000 characters, so a large limit can return fewer records (see `truncated`); recency lists contain dated records only (see `undated_excluded`).",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -92,7 +91,7 @@
             "description": "7-digit NYC Building Identification Number (BIN), e.g. \"1015862\". First digit is the borough (1-5)."
           },
           "status": {
-            "description": "Filter by status: \"open\" or \"closed\". Omit for both.",
+            "description": "Filter by status: \"open\" or \"closed\" (any letter case). Omit for both.",
             "type": "string",
             "enum": [
               "open",
@@ -100,7 +99,6 @@
             ]
           },
           "limit": {
-            "default": 25,
             "description": "Max records to return (1-100, default 25).",
             "type": "integer",
             "minimum": 1,
@@ -140,7 +138,7 @@
             "description": "7-digit NYC Building Identification Number (BIN), e.g. \"1015862\". First digit is the borough (1-5)."
           },
           "status": {
-            "description": "Filter by status: \"open\" or \"closed\". Omit for both.",
+            "description": "Filter by status: \"open\" or \"closed\" (any letter case). Omit for both.",
             "type": "string",
             "enum": [
               "open",
@@ -148,14 +146,25 @@
             ]
           },
           "limit": {
-            "default": 25,
             "description": "Max records to return (1-100, default 25).",
             "type": "integer",
             "minimum": 1,
             "maximum": 100
           }
         },
-        "$schema": "http://json-schema.org/draft-07/schema#"
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "anyOf": [
+          {
+            "required": [
+              "bbl"
+            ]
+          },
+          {
+            "required": [
+              "bin"
+            ]
+          }
+        ]
       },
       "annotations": {
         "readOnlyHint": true,
@@ -170,7 +179,7 @@
     {
       "name": "building_compliance_summary",
       "title": "Building compliance summary",
-      "description": "Best first call for \"what is the violation situation at this property?\". Takes ONE of address, bin or bbl and returns open vs closed counts per agency (DOB, ECB, HPD), the most recent issue date, the 5 most recent open items (one line each) and links to the source records. Makes several upstream requests, so it can take ~10 seconds on a cold cache. Use the get_*_violations tools afterwards only if you need full details of one agency. Counts DOB, ECB and HPD for the one resolved BIN (see `footprint`); read `data_quality_notes` first. Results are cached for an hour, so do not call it repeatedly for the same property.",
+      "description": "Best first call for \"what is the violation situation at this property?\". Takes ONE of address, bin or bbl and returns open vs closed counts per agency (DOB, ECB, HPD), the most recent issue date, the 5 most recent open items (one line each) and links to the source records. Makes 13 upstream requests at 1 request per second, so a cold call takes at least about 12 seconds (measured 12-24 s). Use the get_*_violations tools afterwards only if you need full details of one agency. Counts DOB, ECB and HPD for the one resolved BIN (see `footprint`); read `data_quality_notes` first. Results are cached for an hour, so do not call it repeatedly for the same property.",
       "inputSchema": {
         "type": "object",
         "properties": {
