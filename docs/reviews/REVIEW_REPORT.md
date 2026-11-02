@@ -1,8 +1,8 @@
 # REVIEW_REPORT.md
 
-Reviewer: Claude Sonnet 5.5, run inside the **same session that built the project**, at the user's request. This is **not an independent review in the strict sense**: I remember the build and share its blind spots. To compensate, every conclusion below rests on a command I ran during this review. The commands and scratch scripts are in the temp directory outside the project; none were added to the repo. Date of review: 2026-11-01. A separate fresh-context review (for example the planned Opus 5.5 session) would still add value.
+Reviewer: Claude Sonnet 5.5, run inside the **same session that built the project**, at the user's request. This is **not an independent review in the strict sense**: I remember the build and share its blind spots. To compensate, every conclusion below rests on a command I ran during this review. The commands and scratch scripts were kept in a temp directory outside the project; none were added to the repo. Date of review: 2026-11-01. A separate fresh-context review (for example the planned Opus 5.5 session) would still add value.
 
-Scope followed: read files, run tests, run the inspector CLI, run read-only GETs against NYC Open Data and GeoSearch, write this one file. I changed nothing else (`git status --short` was empty before writing this file). I did not run `scripts/inspector-check.sh`, because it overwrites `docs/evidence/`. I used the inspector CLI directly with output sent to the temp directory.
+Scope followed: read files, run tests, run the inspector CLI, run read-only GETs against NYC Open Data and GeoSearch, write this one file. I changed nothing else (`git status --short` was empty before writing this file). I did not run `scripts/inspector-check.sh`, because it overwrites `docs/evidence/`. I used the inspector CLI directly with output sent to a temp directory outside the project.
 
 ## Verdict: ready after fixes
 
@@ -140,7 +140,7 @@ Other checks: the 13 ACTIVE rows with a disposition date still exist (13 today; 
 - `git remote -v`: empty. `git branch -a`: only `main`. 8 commits, authored by the user's personal address (m2).
 - Secrets: `git grep` across all revisions for key/secret/password/bearer/token patterns, excluding the variable names in docs and code, found nothing; no 40+ character high-entropy strings in history outside the lockfile and fixtures; `.env.example` is the only `.env*` file ever tracked and its value is empty; no `SOCRATA_APP_TOKEN` assignment with a value anywhere.
 - README has no GPA and no "first"/"only" claims (claim 23).
-- Working tree clean before this report; the review created only temp directory files outside the repo.
+- Working tree clean before this report; the review created only temp files outside the repo.
 
 ## What I could not check and why
 
@@ -156,7 +156,7 @@ Other checks: the 13 ACTIVE rows with a disposition date still exist (13 today; 
 
 ## Checklist
 
-- [x] Only REVIEW_REPORT.md was created, nothing else changed (`git status --short` was empty before writing it; scratch files live in the temp directory outside the project)
+- [x] Only REVIEW_REPORT.md was created, nothing else changed (`git status --short` was empty before writing it; scratch files lived in a temp directory outside the project)
 - [x] Test suite run (46 passed) and no-network guard checked (guarded test throws; unguarded control does not)
 - [x] 10 hostile inputs tried (about 40)
 - [x] 3 buildings independently re-checked

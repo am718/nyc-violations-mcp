@@ -213,11 +213,11 @@ I traced the +1: the UI search is full-text, so it also matches a different reco
 
 ## Clean-up list: everything I created in temp
 
-All under `<temp-dir>` (about 137 MB), removed at the end of this review:
+All under a temp directory outside the project (about 137 MB), removed at the end of this review:
 
 - `clone/` (fresh clone with `node_modules` and `dist`, 123 MB)
 - `guard/` (scratch tests and configs for the no-network guard demo; `node_modules` symlink)
 - `pw/` (temp `playwright-core` install, scripts and 6 screenshots, 14 MB)
 - Scripts and outputs: `behavior.mjs`, `hostile.mjs`, `hostile.out`, `untrusted.mjs`, `placeholder.mjs`, `timing.mjs`, `m4.mjs`, `buildings.py`, `rules.py`, `rules2.py`, `bins.py`, `fulltext.py`, `docclaims.py`, `inspector.log`
 
-Processes: the Inspector (UI on 6274 and proxy) and headless Chrome sessions were stopped. The two backup bundles in the temp directory (`nyc-violations-mcp-backup-before-fixes.bundle`, `nyc-violations-mcp-backup-before-rewrite.bundle`) were not touched and are outside `indep/`.
+Processes: the Inspector (UI on 6274 and proxy) and headless Chrome sessions were stopped. The two git backup bundles (kept outside the repo) were not touched.

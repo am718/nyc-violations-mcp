@@ -175,6 +175,12 @@ offline tests with recorded fixtures, and an explicit query-injection test.
 - Compare against DOB/HPD official systems and the web UI, and track dataset freshness over time.
 - Publish to npm and add CI (after review).
 
+## Reviews and known weaknesses
+
+Two reviews are kept in the repo on purpose, including what they found wrong: [`docs/reviews/REVIEW_REPORT.md`](docs/reviews/REVIEW_REPORT.md) (the builder's
+self-review) and [`docs/reviews/REVIEW_REPORT_INDEPENDENT.md`](docs/reviews/REVIEW_REPORT_INDEPENDENT.md) (a second pass; it was run in the same session as the build, so it is
+not fully independent). [`REVIEW.md`](REVIEW.md) maps each finding to the commit that fixed it.
+
 ## Development
 
 ```bash

@@ -103,11 +103,11 @@ returned as data, and accompanied by the notice. There is no sanitization of ins
 - HPD list pagination beyond `limit` (max 100) is not offered (by design: summaries first), so full histories are not retrievable.
 - Dataset `rowsUpdatedAt` is recorded in DATA.md as of 2026-11-01 only; no freshness check at runtime.
 
-## 7. Fixes (second pass, responding to REVIEW_REPORT.md; REVIEW_REPORT.md is unchanged)
+## 7. Fixes (second pass, responding to [REVIEW_REPORT.md](docs/reviews/REVIEW_REPORT.md); that report is unchanged apart from removing local paths)
 
 Commits are listed oldest to newest. The hashes are those of the **rewritten** history (author/committer set to the GitHub noreply address; old fixtures scrubbed of ECB respondent names). The pre-rewrite history exists only in a backup bundle kept outside the repo.
 
-| Finding (REVIEW_REPORT.md) | Status | Commit | What changed / evidence |
+| Finding ([REVIEW_REPORT.md](docs/reviews/REVIEW_REPORT.md)) | Status | Commit | What changed / evidence |
 |---|---|---|---|
 | M1 summary mixes BIN and lot footprints; README:155 false | Fixed | `655341e` Fix 1 | DOB, ECB, HPD all by the resolved BIN; `footprint` + `other_bins_on_lot` always returned; README corrected. Tests "fix 1: consistent footprint" with a recorded Stuyvesant Town lot |
 | M2 HPD "newest first" wrong (NULLs first) | Fixed | `653ff44` Fix 2 | Verified live: NULLs sort first on DESC, `NULLS LAST` accepted but not relied on. Recency queries filter to dated rows; `undated_excluded` reported. Same check applied to DOB/ECB: junk text dates (e.g. `Y30819`) sorted above real ones, now filtered. Tests "fix 2" (live fixtures + synthetic junk) |
