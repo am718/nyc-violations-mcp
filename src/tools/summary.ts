@@ -1,14 +1,14 @@
 import { DATASETS, SOCRATA_BASE, type DatasetKey } from "../config.js";
 import { envelope, type SourceRef } from "../format.js";
 import { byDateDesc, cleanText, mapRows, normalizeDate, isRow, type Violation } from "../normalize.js";
-import { resolveProperty, type Resolver } from "../resolve.js";
+import { otherBinsOnLot, resolveProperty, type Resolver } from "../resolve.js";
 import { queries, type Locator } from "../socrata.js";
 import { STATUS_MAPPER } from "../status.js";
 import { HPD_COVERAGE_NOTE, src } from "./violations.js";
 
 const LABEL: Record<DatasetKey, string> = { dob: "DOB", ecb: "ECB", hpd: "HPD" };
 const ID_FIELD: Record<DatasetKey, string> = { dob: "isn_dob_bis_viol", ecb: "ecb_violation_number", hpd: "violationid" };
-const LOC_FIELD: Record<DatasetKey, string> = { dob: "bin", ecb: "bin", hpd: "bbl" };
+const LOC_FIELD: Record<DatasetKey, string> = { dob: "bin", ecb: "bin", hpd: "bin" };
 
 function oneLine(v: Violation): string {
   const what = v.description ?? v.type ?? "(no description)";
@@ -68,22 +68,32 @@ async function agencySummary(r: Resolver, agency: DatasetKey, loc: Locator) {
 
 export async function buildingComplianceSummary(r: Resolver, a: { address?: string; bin?: string; bbl?: string }) {
   const p = await resolveProperty(r, a);
-  const hpdLoc: Locator = { by: "bbl", bbl: p.bbl };
+  // One footprint for all three agencies: the resolved BIN.
   const binLoc: Locator = { by: "bin", bin: p.bin };
-  // DOB/ECB by BIN; HPD by BBL. Sequential awaits keep us within the 1 req/sec limiter ordering.
   const dob = await agencySummary(r, "dob", binLoc);
   const ecb = await agencySummary(r, "ecb", binLoc);
-  const hpd = await agencySummary(r, "hpd", hpdLoc);
+  const hpd = await agencySummary(r, "hpd", binLoc);
+  const lot = await otherBinsOnLot(r, p.bbl);
 
   const recent = [...dob.items, ...ecb.items, ...hpd.items].sort(byDateDesc).slice(0, 5);
   const itemLink = (v: Violation) =>
     `${SOCRATA_BASE}/${DATASETS[v.agency].id}.json?${ID_FIELD[v.agency]}=${encodeURIComponent(v.id)}`;
   const notes = [
-    ...(p.other_bins_on_lot ? [`This lot has other buildings (BINs ${p.other_bins_on_lot.join(", ")}); DOB/ECB counts are for BIN ${p.bin} only.`] : []),
+    ...(lot.count > 0
+      ? [`This lot (BBL ${p.bbl}) holds about ${lot.count} other building(s) (other BINs); none of their records are included in these counts.`]
+      : []),
     ...(p.match?.note ? [p.match.note] : []),
   ];
-  return envelope([...p.sources, ...dob.srcs, ...ecb.srcs, ...hpd.srcs], {
+  return envelope([...p.sources, ...dob.srcs, ...ecb.srcs, ...hpd.srcs, ...lot.sources], {
     property: { address: p.address, bin: p.bin, bbl: p.bbl, borough: p.borough },
+    footprint: {
+      counted: `Records matching BIN ${p.bin} only, in all three datasets (DOB, ECB, HPD).`,
+      bin: p.bin,
+      lot_bbl: p.bbl,
+      other_bins_on_lot: lot.count,
+      other_bins_note:
+        "Approximate number of other buildings on the same lot seen in DOB/HPD records; their violations are NOT counted here.",
+    },
     agencies: { DOB: dob.section, ECB: ecb.section, HPD: hpd.section },
     most_recent_open_items: recent.map((v) => ({
       line: oneLine(v),

@@ -1,5 +1,5 @@
 {
  "url": "https://data.cityofnewyork.us/resource/wvxf-dwi5.json?%24select=bbl%2C+bin%2C+housenumber%2C+streetname%2C+count%28*%29+as+n&%24where=bin+%3D+%272099579%27&%24group=bbl%2C+bin%2C+housenumber%2C+streetname&%24order=n+DESC&%24limit=3",
  "status": 200,
- "body": "[{\"bbl\":\"2046540021\",\"bin\":\"2099579\",\"housenumber\":\"642\",\"streetname\":\"EAST 220 STREET\",\"n\":\"77\"}]\n"
+ "body": "[{\"bbl\":\"2046540021\",\"bin\":\"2099579\",\"housenumber\":\"642\",\"streetname\":\"EAST 220 STREET\",\"n\":\"77\"}]"
 }

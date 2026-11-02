@@ -152,10 +152,10 @@ offline tests with recorded fixtures, and an explicit query-injection test.
 ## Limitations
 
 - Only DOB, ECB and HPD violations. No permits, complaints, ownership, or OATH hearing details beyond the ECB dataset.
-- One BIN per property. A lot with several buildings is reported with `other_bins_on_lot`, and DOB/ECB counts are for the chosen BIN only.
+- One BIN per summary. `building_compliance_summary` counts DOB, ECB **and HPD** by the same BIN and returns a `footprint` field saying so, plus `other_bins_on_lot` (approximate count of other buildings on the same lot seen in DOB/HPD records, whose violations are not counted). For a lot like Stuyvesant Town (about 35 BINs) the summary covers one building only. `resolve_property` with a `bbl` lists up to 9 other BINs on the lot.
 - BIN/BBL inputs are resolved through DOB/HPD rows, so a valid BIN with no violation records anywhere cannot be resolved (use the address).
 - GeoSearch matches can be low confidence; the confidence is reported.
-- The summary needs about 8-10 upstream requests (1 req/sec), roughly 10 seconds on a cold cache.
+- The summary needs about 10-12 upstream requests (1 req/sec), roughly 12 seconds on a cold cache.
 - Datasets or field names can change; `docs/DATA.md` records what was verified on 2026-11-01.
 - Recorded test fixtures contain public record text, including ECB respondent names, as returned by NYC Open Data.
 

@@ -94,6 +94,10 @@ export const queries = {
       limit: 1,
     };
   },
+  /** Distinct BINs on a lot, per dataset (used to report other buildings on the same lot). */
+  distinctBinsOnLot(dataset: "dob" | "hpd", bbl: string): SoqlQuery {
+    return { dataset, select: "count(distinct bin) as n", where: locatorClause(dataset, { by: "bbl", bbl }), limit: 1 };
+  },
   /** BIN -> lot (DOB rows carry boro/block/lot and address). */
   dobLotForBin(bin: string): SoqlQuery {
     return {

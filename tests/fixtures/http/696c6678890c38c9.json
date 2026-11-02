@@ -1,5 +1,5 @@
 {
  "url": "https://data.cityofnewyork.us/resource/3h2n-5cm9.json?%24select=bin%2C+house_number%2C+street%2C+count%28*%29+as+n&%24where=boro+%3D+%271%27+AND+block+%3D+%2700835%27+AND+lot+%3D+%2700042%27&%24group=bin%2C+house_number%2C+street&%24order=n+DESC&%24limit=10",
  "status": 200,
- "body": "[]\n"
+ "body": "[]"
 }

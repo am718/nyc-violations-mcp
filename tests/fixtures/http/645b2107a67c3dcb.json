@@ -1,0 +1,5 @@
+{
+ "url": "https://data.cityofnewyork.us/resource/wvxf-dwi5.json?%24select=count%28distinct+bin%29+as+n&%24where=bbl+%3D+%272046540021%27&%24limit=1",
+ "status": 200,
+ "body": "[{\"n\":\"1\"}]"
+}

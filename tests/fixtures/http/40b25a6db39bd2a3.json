@@ -1,5 +1,0 @@
-{
- "url": "https://data.cityofnewyork.us/resource/wvxf-dwi5.json?%24select=violationstatus%2C+count%28*%29+as+n%2C+max%28novissueddate%29+as+latest&%24where=bbl+%3D+%271008350041%27&%24group=violationstatus&%24limit=50",
- "status": 200,
- "body": "[]\n"
-}

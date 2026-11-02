@@ -1,0 +1,5 @@
+{
+ "url": "https://data.cityofnewyork.us/resource/3h2n-5cm9.json?%24select=violation_category%2C+count%28*%29+as+n%2C+max%28issue_date%29+as+latest&%24where=bin+%3D+%271082869%27&%24group=violation_category&%24limit=50",
+ "status": 200,
+ "body": "[{\"violation_category\":\"V*-DOB VIOLATION - Resolved\",\"n\":\"121\",\"latest\":\"20180410\"},{\"violation_category\":\"V-DOB VIOLATION - ACTIVE\",\"n\":\"3\",\"latest\":\"19881005\"},{\"violation_category\":\"V*-DOB VIOLATION - DISMISSED\",\"n\":\"3\",\"latest\":\"20231004\"}]"
+}

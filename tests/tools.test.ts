@@ -319,3 +319,37 @@ describe("client leniency", () => {
     expect(JSON.parse((res2.content as { text: string }[])[0]!.text).query.limit).toBe(25);
   });
 });
+
+describe("fix 1: consistent footprint (multi-building lot = Stuyvesant Town, recorded live)", () => {
+  it("counts DOB, ECB and HPD by the SAME BIN and never by BBL", async () => {
+    const calls: string[] = [];
+    await buildingComplianceSummary(makeResolver(fixtureFetch(calls)), { address: "1 Stuyvesant Oval, Manhattan" });
+    const socrata = calls.filter((u) => u.includes("data.cityofnewyork.us")).map((u) => decodeURIComponent(u.replace(/\+/g, " ")));
+    const hpd = socrata.filter((u) => u.includes("wvxf-dwi5"));
+    expect(hpd.length).toBeGreaterThan(0);
+    // The only BBL-based Socrata queries allowed are the lot-bin counters (count(distinct bin)).
+    for (const u of socrata.filter((x) => x.includes("bbl =") || x.includes("block ="))) expect(u).toContain("count(distinct bin)");
+    for (const u of socrata.filter((x) => !x.includes("count(distinct bin)"))) expect(u).toContain("bin = '1082881'");
+  });
+  it("returns a footprint and a non-zero other_bins_on_lot, with a note, so a multi-building lot is never silent", async () => {
+    const out = await buildingComplianceSummary(makeResolver(fixtureFetch()), { address: "1 Stuyvesant Oval, Manhattan" });
+    expect(out.footprint).toMatchObject({ bin: "1082881", lot_bbl: "1009720001" });
+    expect(out.footprint.counted).toMatch(/BIN 1082881 only/);
+    expect(out.footprint.other_bins_on_lot).toBeGreaterThanOrEqual(30); // 35 BINs seen on the lot on 2026-11-01
+    expect(JSON.stringify(out.notes)).toMatch(/other building/);
+    const hpd = out.agencies.HPD as Record<string, number>;
+    expect(hpd.open + hpd.closed).toBe(63); // BIN-level, not the 626 lot-wide
+  });
+  it("single-building lot: footprint present with other_bins_on_lot = 0 and no lot note", async () => {
+    const out = await buildingComplianceSummary(makeResolver(fixtureFetch()), { address: ESB.address });
+    expect(out.footprint).toMatchObject({ bin: ESB.bin, lot_bbl: ESB.bbl, other_bins_on_lot: 0 });
+    expect(JSON.stringify(out.notes ?? [])).not.toMatch(/other building/);
+  });
+  it("footprint is present for bin and bbl input too", async () => {
+    const r = makeResolver(fixtureFetch());
+    expect((await buildingComplianceSummary(r, { bin: "1082881" })).footprint.bin).toBe("1082881");
+    const byBbl = await buildingComplianceSummary(r, { bbl: "1009720001" });
+    expect(byBbl.footprint.lot_bbl).toBe("1009720001");
+    expect(byBbl.footprint.other_bins_on_lot).toBeGreaterThanOrEqual(30);
+  });
+});

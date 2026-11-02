@@ -140,6 +140,17 @@ export async function resolveBbl(r: Resolver, bbl: string): Promise<Property> {
   };
 }
 
+/**
+ * How many OTHER buildings (BINs) share this lot, as seen in DOB and HPD records.
+ * Approximate: it is max(distinct BINs in DOB, distinct BINs in HPD) - 1, so it can undercount
+ * buildings that have no records in either dataset.
+ */
+export async function otherBinsOnLot(r: Resolver, bbl: string): Promise<{ count: number; sources: SourceRef[] }> {
+  const dob = await r.socrata.count(queries.distinctBinsOnLot("dob", bbl));
+  const hpd = await r.socrata.count(queries.distinctBinsOnLot("hpd", bbl));
+  return { count: Math.max(0, Math.max(dob.n, hpd.n) - 1), sources: [ds("dob", dob.fetchedAt), ds("hpd", hpd.fetchedAt)] };
+}
+
 /** Resolve exactly what the caller gave; if both bin and bbl are given they must agree. */
 export async function resolveProperty(
   r: Resolver,

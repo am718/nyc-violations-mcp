@@ -1,0 +1,5 @@
+{
+ "url": "https://data.cityofnewyork.us/resource/3h2n-5cm9.json?%24select=count%28distinct+bin%29+as+n&%24where=boro+%3D+%271%27+AND+block+%3D+%2700972%27+AND+lot+%3D+%2700001%27&%24limit=1",
+ "status": 200,
+ "body": "[{\"n\":\"35\"}]"
+}
