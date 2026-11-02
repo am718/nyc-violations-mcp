@@ -78,6 +78,9 @@ await attempt("hpd mixed dates", () => getHpdViolations(r, { bin: "2096753", sta
 // DOB building with a junk issue_date ("Y30819") that sorts above real dates as text
 await attempt("dob junk date", () => getDobViolations(r, { bin: "1085463", limit: 5 }));
 await attempt("dob junk date summary", () => buildingComplianceSummary(r, { bin: "1085463" }));
+// ECB building with WRITTEN OFF active records (Grand Central Terminal)
+await attempt("gct summary", () => buildingComplianceSummary(r, { bin: "1035381" }));
+await attempt("gct ecb open", () => getEcbViolations(r, { bin: "1035381", status: "open", limit: 3 }));
 // Residential building with HPD coverage
 await attempt("res summary", () => buildingComplianceSummary(r, { bin: "2099579" }));
 await attempt("res hpd", () => getHpdViolations(r, { bbl: "2046540021", status: "closed", limit: 3 }));

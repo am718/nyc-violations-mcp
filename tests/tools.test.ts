@@ -88,10 +88,7 @@ describe("summary shape (Empire State Building fixtures)", () => {
     expect(out.sources.map((s) => s.dataset_id)).toEqual(expect.arrayContaining(["3h2n-5cm9", "6bgk-3dad", "wvxf-dwi5"]));
     expect(out.fetched_at).toBeTruthy();
   });
-  it("flags open DOB records that carry disposition notes", async () => {
-    const out = await buildingComplianceSummary(makeResolver(fixtureFetch()), { address: ESB.address });
-    expect(JSON.stringify(out.agencies.DOB)).toMatch(/open_caveat/);
-  });
+  it("(superseded by the fix 3 tests below)", () => {});
 });
 
 describe("list tools (DOB, ECB)", () => {
@@ -336,14 +333,14 @@ describe("fix 1: consistent footprint (multi-building lot = Stuyvesant Town, rec
     expect(out.footprint).toMatchObject({ bin: "1082881", lot_bbl: "1009720001" });
     expect(out.footprint.counted).toMatch(/BIN 1082881 only/);
     expect(out.footprint.other_bins_on_lot).toBeGreaterThanOrEqual(30); // 35 BINs seen on the lot on 2026-11-01
-    expect(JSON.stringify(out.notes)).toMatch(/other building/);
+    expect(JSON.stringify(out.data_quality_notes)).toMatch(/other building/);
     const hpd = out.agencies.HPD as Record<string, number>;
     expect(hpd.open + hpd.closed).toBe(63); // BIN-level, not the 626 lot-wide
   });
   it("single-building lot: footprint present with other_bins_on_lot = 0 and no lot note", async () => {
     const out = await buildingComplianceSummary(makeResolver(fixtureFetch()), { address: ESB.address });
     expect(out.footprint).toMatchObject({ bin: ESB.bin, lot_bbl: ESB.bbl, other_bins_on_lot: 0 });
-    expect(JSON.stringify(out.notes ?? [])).not.toMatch(/other building/);
+    expect(JSON.stringify(out.data_quality_notes)).not.toMatch(/other building/);
   });
   it("footprint is present for bin and bbl input too", async () => {
     const r = makeResolver(fixtureFetch());
@@ -393,5 +390,56 @@ describe("fix 2: recency order excludes undated rows and reports how many (recor
     expect(out.violations.map((v) => v.id)).toEqual(["1", "2", "3"]); // dated first, junk/null last
     expect(out.violations[1]!.issue_date).toBeNull();
     expect(out.undated_excluded).toBe(2);
+  });
+});
+
+describe("fix 3: open counts that do not mislead (recorded live)", () => {
+  it("Empire State Building DOB: 7 raw open, all 7 annotated deleted, 0 excluding deleted; raw count kept", async () => {
+    const out = await buildingComplianceSummary(makeResolver(fixtureFetch()), { address: ESB.address });
+    const dob = out.agencies.DOB as Record<string, number>;
+    expect(dob.open).toBe(7);
+    expect(dob.open_flagged_deleted).toBe(7);
+    expect(dob.open_excluding_deleted).toBe(0);
+    expect(dob.closed).toBe(684);
+  });
+  it("data_quality_notes is the FIRST key, ahead of property, footprint and every count", async () => {
+    const out = await buildingComplianceSummary(makeResolver(fixtureFetch()), { address: ESB.address });
+    const keys = Object.keys(out);
+    expect(keys[0]).toBe("data_quality_notes");
+    expect(keys.indexOf("data_quality_notes")).toBeLessThan(keys.indexOf("agencies"));
+    expect(keys.indexOf("notice")).toBeLessThan(keys.indexOf("agencies"));
+    const text = out.data_quality_notes.join(" ");
+    expect(text).toMatch(/heuristic/);
+    expect(text).toMatch(/7 of 7 open DOB record\(s\) carry a "DELETED/);
+    expect(text).toMatch(/not reclassified|never reclassified/);
+  });
+  it("open items annotated deleted are still listed (not silently dropped) but marked", async () => {
+    const out = await buildingComplianceSummary(makeResolver(fixtureFetch()), { address: ESB.address });
+    expect(out.most_recent_open_items.length).toBe(5);
+    for (const it of out.most_recent_open_items) expect(it.line).toMatch(/\[annotated DELETED\]/);
+  });
+  it("ECB WRITTEN OFF (Grand Central): raw open kept, written-off subset counted separately", async () => {
+    const out = await buildingComplianceSummary(makeResolver(fixtureFetch()), { bin: "1035381" });
+    const ecb = out.agencies.ECB as Record<string, number>;
+    expect(ecb.open).toBe(6);
+    expect(ecb.open_flagged_written_off).toBe(6);
+    expect(ecb.open_excluding_written_off).toBe(0);
+    expect(out.data_quality_notes.join(" ")).toMatch(/WRITTEN OFF/);
+  });
+  it("list tools mark flagged items instead of reclassifying them", async () => {
+    const out = await getEcbViolations(makeResolver(fixtureFetch()), { bin: "1035381", status: "open", limit: 3 });
+    expect(out.violations.every((v) => v.status === "open")).toBe(true);
+    expect(out.violations.some((v) => v.flag === "written_off")).toBe(true);
+  });
+  it("a building with no annotations has no flagged subset note (Stuyvesant: DOB open 0)", async () => {
+    const out = await buildingComplianceSummary(makeResolver(fixtureFetch()), { address: "1 Stuyvesant Oval, Manhattan" });
+    const dob = out.agencies.DOB as Record<string, unknown>;
+    expect(dob).not.toHaveProperty("open_flagged_deleted");
+  });
+  it("list responses put the untrusted-text notice before the data", async () => {
+    const out = await getDobViolations(makeResolver(fixtureFetch()), { bin: ESB.bin, status: "open", limit: 5 });
+    const keys = Object.keys(out);
+    expect(keys.indexOf("notice")).toBeLessThan(keys.indexOf("violations"));
+    expect(out.untrusted_text_fields).toContain("violations[].description");
   });
 });

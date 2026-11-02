@@ -64,3 +64,16 @@ export const STATUS_CLAUSE: Record<DatasetKey, Record<"open" | "closed", string>
   ecb: { open: "ecb_violation_status = 'ACTIVE'", closed: "ecb_violation_status = 'RESOLVE'" },
   hpd: { open: "violationstatus = 'Open'", closed: "violationstatus = 'Close'" },
 };
+
+/**
+ * Annotations that suggest an "open" record is not genuinely outstanding. Verified live 2026-11-01:
+ *  - DOB: 31,834 of 573,684 ACTIVE rows have disposition_comments like "DELETED BY <initials> ON <date> BECAUSE ...".
+ *  - ECB: ACTIVE rows with hearing_status "WRITTEN OFF" (59,165 citywide).
+ * These are reported as a SECOND count; records are never silently reclassified.
+ */
+export const FLAG_CLAUSE = {
+  dob: "upper(disposition_comments) like '%DELETED%'",
+  ecb: "hearing_status = 'WRITTEN OFF'",
+} as const;
+
+export type Flag = "annotated_deleted" | "written_off";

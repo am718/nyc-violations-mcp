@@ -59,7 +59,11 @@ async function listViolations(r: Resolver, agency: DatasetKey, loc: Locator, arg
     ...(notes.length ? { notes } : {}),
   };
   return capList(
-    envelope([src(agency, page.fetchedAt), src(agency, total.fetchedAt), src(agency, dated.fetchedAt), ...extraSources], body),
+    envelope(
+      [src(agency, page.fetchedAt), src(agency, total.fetchedAt), src(agency, dated.fetchedAt), ...extraSources],
+      body,
+      ["violations[].description", "violations[].type", "violations[].status_raw", "violations[].caveat", "violations[].details.*"],
+    ),
     "violations",
     LIMITS.maxResponseChars,
   );

@@ -12,7 +12,8 @@ const LOC_FIELD: Record<DatasetKey, string> = { dob: "bin", ecb: "bin", hpd: "bi
 
 function oneLine(v: Violation): string {
   const what = v.description ?? v.type ?? "(no description)";
-  return `${v.issue_date ?? "date unknown"} · ${LABEL[v.agency]} ${v.id} · ${what.length > 110 ? `${what.slice(0, 109)}…` : what}`;
+  const mark = v.flag === "annotated_deleted" ? " [annotated DELETED]" : v.flag === "written_off" ? " [WRITTEN OFF]" : "";
+  return `${v.issue_date ?? "date unknown"} · ${LABEL[v.agency]} ${v.id} · ${what.length > 110 ? `${what.slice(0, 109)}…` : what}${mark}`;
 }
 
 async function agencySummary(r: Resolver, agency: DatasetKey, loc: Locator) {
@@ -42,11 +43,12 @@ async function agencySummary(r: Resolver, agency: DatasetKey, loc: Locator) {
   }
   const undatedOpen = Math.max(0, counts.open - datedOpen);
   const total = counts.open + counts.closed + counts.unknown;
-  let openWithNotes: number | null = null;
-  if (agency === "dob" && counts.open > 0) {
-    const c = await r.socrata.count(queries.dobOpenWithNotes(loc));
-    openWithNotes = c.n;
-    srcsExtra.push(src("dob", c.fetchedAt));
+  // Second count: open records annotated as deleted (DOB) / written off (ECB). Raw `open` is kept unchanged.
+  let flagged: number | null = null;
+  if ((agency === "dob" || agency === "ecb") && counts.open > 0) {
+    const c = await r.socrata.count(queries.openFlagged(agency, loc));
+    flagged = Math.min(c.n, counts.open);
+    srcsExtra.push(src(agency, c.fetchedAt));
   }
   const { items } = mapRows(agency, openRows.rows);
   const link = () => `${SOCRATA_BASE}/${DATASETS[agency].id}.json?${LOC_FIELD[agency]}=${loc.by === "bin" ? loc.bin : loc.bbl}`;
@@ -55,6 +57,8 @@ async function agencySummary(r: Resolver, agency: DatasetKey, loc: Locator) {
     items,
     srcs,
     undatedOpen,
+    counts,
+    flagged,
     section:
       agency === "hpd" && total === 0
         ? { coverage: "no HPD coverage expected or none found", open: null, closed: null, most_recent_issue_date: null, note: HPD_COVERAGE_NOTE }
@@ -66,11 +70,11 @@ async function agencySummary(r: Resolver, agency: DatasetKey, loc: Locator) {
             open_undated_excluded_from_recent_list: undatedOpen,
             ...(total === 0 ? { note: "No records found in this dataset for this property; not proof of compliance." } : {}),
             ...(agency === "dob" ? { status_rule: 'open = "ACTIVE" in violation_category (heuristic)' } : {}),
-            ...(openWithNotes
-              ? {
-                  open_with_disposition_notes: openWithNotes,
-                  open_caveat: `${openWithNotes} of the ${counts.open} "open" DOB records carry a disposition date/comment (often "DELETED … BECAUSE DUPLICATE/WRONG ADDRESS") and may not be genuinely open; check the source records.`,
-                }
+            ...(flagged !== null && agency === "dob"
+              ? { open_flagged_deleted: flagged, open_excluding_deleted: counts.open - flagged }
+              : {}),
+            ...(flagged !== null && agency === "ecb"
+              ? { open_flagged_written_off: flagged, open_excluding_written_off: counts.open - flagged }
               : {}),
             source_link: link(),
           },
@@ -89,20 +93,31 @@ export async function buildingComplianceSummary(r: Resolver, a: { address?: stri
   const recent = [...dob.items, ...ecb.items, ...hpd.items].sort(byDateDesc).slice(0, 5);
   const itemLink = (v: Violation) =>
     `${SOCRATA_BASE}/${DATASETS[v.agency].id}.json?${ID_FIELD[v.agency]}=${encodeURIComponent(v.id)}`;
-  const notes = [
-    ...(lot.count > 0
-      ? [`This lot (BBL ${p.bbl}) holds about ${lot.count} other building(s) (other BINs); none of their records are included in these counts.`]
-      : []),
-    ...(p.match?.note ? [p.match.note] : []),
-    ...[
-      { k: "DOB", n: dob.undatedOpen },
-      { k: "ECB", n: ecb.undatedOpen },
-      { k: "HPD", n: hpd.undatedOpen },
-    ]
-      .filter((x) => x.n > 0)
-      .map((x) => `${x.n} open ${x.k} record(s) have no usable issue date and are left out of most_recent_open_items.`),
+  const dq: string[] = [
+    'DOB open/closed is a heuristic: "open" means ACTIVE appears in violation_category. Raw open counts are kept; flagged subsets are counted separately, never reclassified.',
   ];
+  if (dob.flagged) {
+    dq.push(
+      `${dob.flagged} of ${dob.counts.open} open DOB record(s) carry a "DELETED ..." disposition comment and are probably not outstanding (open_excluding_deleted = ${dob.counts.open - dob.flagged}). Verify in DOB's own system.`,
+    );
+  }
+  if (ecb.flagged) {
+    dq.push(
+      `${ecb.flagged} of ${ecb.counts.open} open ECB record(s) have hearing status WRITTEN OFF (open_excluding_written_off = ${ecb.counts.open - ecb.flagged}).`,
+    );
+  }
+  if (hpd.counts.open + hpd.counts.closed + hpd.counts.unknown === 0) {
+    dq.push("No HPD records found for this BIN. HPD covers residential buildings only; this is NOT evidence of compliance.");
+  }
+  if (lot.count > 0) {
+    dq.push(`This lot (BBL ${p.bbl}) holds about ${lot.count} other building(s) (other BINs); none of their records are included in these counts.`);
+  }
+  if (p.match?.note) dq.push(p.match.note);
+  for (const [k, n] of [["DOB", dob.undatedOpen], ["ECB", ecb.undatedOpen], ["HPD", hpd.undatedOpen]] as const) {
+    if (n > 0) dq.push(`${n} open ${k} record(s) have no usable issue date and are left out of most_recent_open_items.`);
+  }
   return envelope([...p.sources, ...dob.srcs, ...ecb.srcs, ...hpd.srcs, ...lot.sources], {
+    data_quality_notes: dq,
     property: { address: p.address, bin: p.bin, bbl: p.bbl, borough: p.borough },
     footprint: {
       counted: `Records matching BIN ${p.bin} only, in all three datasets (DOB, ECB, HPD).`,
@@ -119,6 +134,5 @@ export async function buildingComplianceSummary(r: Resolver, a: { address?: stri
       source_link: itemLink(v),
     })),
     ...(recent.length === 0 ? { open_items_note: "No open items found in the open data (not proof of compliance)." } : {}),
-    ...(notes.length ? { notes } : {}),
-  });
+  }, ["most_recent_open_items[].line", "most_recent_open_items[].caveat"]);
 }

@@ -24,7 +24,7 @@ violation_category, violation_type.
   Edge case (verified): 13 ACTIVE rows carry a `disposition_date` (10 say "DELETED BY ... BECAUSE DUPLICATE/..."; 2 say
   "PAID INVOICE"; 1 has the junk date "7"), and many more ACTIVE rows carry `disposition_comments` without a date
   (all 7 ACTIVE records at the Empire State Building say "DELETED BY ... BECAUSE ..."). They are still classed **open**
-  by the rule, with a per-item `caveat` and a summary-level `open_with_disposition_notes` count.
+  by the rule, with a per-item `caveat`/`flag`; the summary adds `open_flagged_deleted` / `open_excluding_deleted` (see below).
   The 13 rows are recorded in `tests/fixtures/dob_active_with_disposition.json` and tested in `tests/status-and-dates.test.ts`.
 - DOB/ECB `block` and `lot` are zero-padded 5-digit text (lot `00041`); a BBL's lot is 4 digits (`0041`). A BBL maps to
   DOB/ECB rows via `boro` + `block` + `lot` (`0` prepended to the BBL lot). Verified live.
@@ -56,6 +56,21 @@ rentimpairing, latitude, longitude, communityboard, councildistrict, censustract
 
 The DOB rule is a heuristic because the dataset has no explicit open/closed column. ECB "open" includes ACTIVE records whose
 hearing status is e.g. `WRITTEN OFF` (59,165 citywide rows); the hearing status is returned per record.
+
+## Second open count: annotated records (heuristic, never a silent reclassification)
+
+`building_compliance_summary` keeps the raw `open` counts and adds a second count per agency, plus a `data_quality_notes` array
+as the **first** key of the response:
+
+| Agency | Raw | Flag rule (verified live 2026-11-01) | Extra fields |
+|---|---|---|---|
+| DOB | `open` = `ACTIVE` in `violation_category` | `disposition_comments` contains `DELETED` (31,834 of 573,684 ACTIVE rows citywide; e.g. "DELETED BY LCA ON 03/16/2011 BECAUSE WRONG ADDRESS") | `open_flagged_deleted`, `open_excluding_deleted` |
+| ECB | `open` = `ecb_violation_status = ACTIVE` | `hearing_status = WRITTEN OFF` (59,165 ACTIVE rows citywide) | `open_flagged_written_off`, `open_excluding_written_off` |
+| HPD | `open` = `violationstatus = Open` | none | none |
+
+This is a heuristic. Other DOB annotations (e.g. "BARAMIS OVERNIGHT RUN - ECB NUMBER MATCH", 98 rows; "PAID INVOICE") are NOT
+excluded; they only get a generic per-item caveat. Flagged items stay in `most_recent_open_items`, marked `[annotated DELETED]` or
+`[WRITTEN OFF]`. Verify against DOB/OATH before treating either number as authoritative.
 
 ## Dates (one place: `normalizeDate` in `src/normalize.ts`)
 DOB/ECB `YYYYMMDD` text and HPD ISO timestamps are normalized to `YYYY-MM-DD` before merging/sorting. Unparseable values

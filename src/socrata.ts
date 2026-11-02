@@ -2,7 +2,7 @@ import { DATASETS, SOCRATA_BASE, type DatasetKey } from "./config.js";
 import { ToolError } from "./errors.js";
 import type { HttpClient } from "./http.js";
 import { splitBbl } from "./ids.js";
-import { STATUS_CLAUSE, STATUS_FIELD } from "./status.js";
+import { FLAG_CLAUSE, STATUS_CLAUSE, STATUS_FIELD } from "./status.js";
 
 /**
  * Query-safety design: NO user text is ever placed into a SoQL string.
@@ -110,12 +110,12 @@ export const queries = {
       limit: 50,
     };
   },
-  /** DOB rows classed open (ACTIVE) that nevertheless carry a disposition date/comment. */
-  dobOpenWithNotes(loc: Locator): SoqlQuery {
+  /** Open records carrying the "deleted" (DOB) or "written off" (ECB) annotation. Counted separately, never reclassified. */
+  openFlagged(dataset: "dob" | "ecb", loc: Locator): SoqlQuery {
     return {
-      dataset: "dob",
+      dataset,
       select: "count(*) as n",
-      where: and(locatorClause("dob", loc), STATUS_CLAUSE.dob.open, "(disposition_date IS NOT NULL OR disposition_comments IS NOT NULL)"),
+      where: and(locatorClause(dataset, loc), STATUS_CLAUSE[dataset].open, FLAG_CLAUSE[dataset]),
       limit: 1,
     };
   },

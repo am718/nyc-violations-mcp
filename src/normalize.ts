@@ -1,6 +1,6 @@
 import { LIMITS } from "./config.js";
 import type { DatasetKey } from "./config.js";
-import { STATUS_MAPPER, type Status } from "./status.js";
+import { STATUS_MAPPER, type Flag, type Status } from "./status.js";
 
 /**
  * Normalize a date to ISO "YYYY-MM-DD" (or null). The ONE place dates are parsed.
@@ -51,6 +51,7 @@ export interface Violation {
   description: string | null;
   details: Record<string, string | null>;
   caveat?: string;
+  flag?: Flag;
 }
 
 type Row = Record<string, unknown>;
@@ -81,20 +82,29 @@ export function mapRow(agency: DatasetKey, row: unknown): Violation | null {
         disposition_comments: cleanText(row.disposition_comments, 160),
       },
     };
-    if (status === "open" && (cleanText(row.disposition_date, 40) !== null || cleanText(row.disposition_comments, 160) !== null)) {
+    const comments = cleanText(row.disposition_comments, 160);
+    if (status === "open" && /DELETED/i.test(comments ?? "")) {
+      v.flag = "annotated_deleted";
+      v.caveat = "Category says ACTIVE but the disposition comment says the record was DELETED; it is probably not outstanding. Counted as open by the heuristic.";
+    } else if (status === "open" && (cleanText(row.disposition_date, 40) !== null || comments !== null)) {
       v.caveat =
-        "Category says ACTIVE but a disposition date/comment is present (e.g. deleted as duplicate); this record may not be genuinely open. Open/closed is a heuristic.";
+        "Category says ACTIVE but a disposition date/comment is present; this record may not be genuinely open. Open/closed is a heuristic.";
     }
     return v;
   }
   if (agency === "ecb") {
     const id = cleanText(row.ecb_violation_number, 40);
     if (!id) return null;
+    const ecbStatus = STATUS_MAPPER.ecb(row.ecb_violation_status);
+    const writtenOff = ecbStatus === "open" && String(row.hearing_status ?? "").trim().toUpperCase() === "WRITTEN OFF";
     return {
       agency,
       id,
       issue_date: normalizeDate(row.issue_date),
-      status: STATUS_MAPPER.ecb(row.ecb_violation_status),
+      status: ecbStatus,
+      ...(writtenOff
+        ? { flag: "written_off" as const, caveat: "ECB status is ACTIVE but the hearing status is WRITTEN OFF; the penalty was written off. Counted as open by the status field." }
+        : {}),
       status_raw: cleanText(row.ecb_violation_status, 40),
       type: cleanText(row.violation_type, 80),
       description: cleanText(row.violation_description),

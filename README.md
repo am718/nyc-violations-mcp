@@ -115,7 +115,9 @@ last-updated dates: [`docs/DATA.md`](docs/DATA.md).
 
 **DOB open/closed rule:** the DOB dataset has no status column, so *open* means the text `ACTIVE` appears in
 `violation_category`. This is a **heuristic**. Many "open" DOB records are decades old and carry notes like "DELETED BY ...
-BECAUSE DUPLICATE"; the tool flags these (`open_with_disposition_notes`, per-record `caveat`). ECB uses `ACTIVE`/`RESOLVE`,
+BECAUSE DUPLICATE". The summary keeps the raw `open` count and adds a second count excluding records annotated as deleted (DOB:
+`open_excluding_deleted`) or written off (ECB: `open_excluding_written_off`), with a `data_quality_notes` array as the first key of the
+response. Both rules are heuristics and nothing is silently reclassified (see `docs/DATA.md`). ECB uses `ACTIVE`/`RESOLVE`,
 HPD uses `Open`/`Close`. All three mappings live in `src/status.ts`.
 
 ## Data caveats and lag

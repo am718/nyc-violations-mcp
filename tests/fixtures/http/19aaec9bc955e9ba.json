@@ -1,0 +1,5 @@
+{
+ "url": "https://data.cityofnewyork.us/resource/6bgk-3dad.json?%24select=count%28*%29+as+n&%24where=bin+%3D+%271085463%27+AND+ecb_violation_status+%3D+%27ACTIVE%27+AND+hearing_status+%3D+%27WRITTEN+OFF%27&%24limit=1",
+ "status": 200,
+ "body": "[{\"n\":\"0\"}]"
+}

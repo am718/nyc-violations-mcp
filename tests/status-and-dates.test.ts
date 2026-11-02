@@ -33,12 +33,18 @@ describe("per-dataset status mapping (single source of truth)", () => {
 describe("the 13 real ACTIVE DOB rows that carry a disposition (recorded fixture)", () => {
   const rows = loadFixture("dob_active_with_disposition.json") as Record<string, unknown>[];
   it("has 13 rows", () => expect(rows).toHaveLength(13));
-  it("are classified open by the rule but each carries a caveat", () => {
-    for (const r of rows) {
-      const v = mapRow("dob", r)!;
+  it("are all classified open by the rule (not silently reclassified); 10 'DELETED' ones are flagged, the other 3 carry a generic caveat", () => {
+    const items = rows.map((r) => mapRow("dob", r)!);
+    for (const v of items) {
       expect(v.status).toBe("open");
-      expect(v.caveat).toMatch(/may not be genuinely open/);
+      expect(v.caveat).toBeTruthy();
     }
+    const deleted = items.filter((v) => v.flag === "annotated_deleted");
+    expect(deleted).toHaveLength(10);
+    for (const v of deleted) expect(v.caveat).toMatch(/DELETED/);
+    const others = items.filter((v) => v.flag === undefined);
+    expect(others).toHaveLength(3); // 2 x PAID INVOICE + 1 with junk disposition_date "7"
+    for (const v of others) expect(v.caveat).toMatch(/may not be genuinely open/);
   });
   it("the row with junk disposition_date '7' yields a null date, not a crash", () => {
     const junk = rows.find((r) => r.disposition_date === "7")!;
