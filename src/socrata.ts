@@ -58,20 +58,34 @@ function and(...parts: (string | undefined)[]): string {
 
 const DATE_FIELD: Record<DatasetKey, string> = { dob: "issue_date", ecb: "issue_date", hpd: "novissueddate" };
 
+/**
+ * "Has a usable date" filters (fixed strings, no user input). Verified live 2026-11-01:
+ *  - Socrata sorts NULLs FIRST on DESC, and `NULLS LAST` is accepted, but we filter instead of relying on it.
+ *  - DOB/ECB dates are TEXT, so junk values such as "Y30819", "0306", "000000" (DOB) or "0" (ECB) sort
+ *    lexically (e.g. "Y30819" sorts ABOVE "2021..."). Valid dates are 8 characters within 1800-2200.
+ *  - HPD `novissueddate` is a real timestamp: only NULLs need excluding (812k rows are null).
+ */
+export const VALID_DATE: Record<DatasetKey, string> = {
+  dob: "(issue_date between '18000101' and '22001231' AND issue_date like '________')",
+  ecb: "(issue_date between '18000101' and '22001231' AND issue_date like '________')",
+  hpd: "novissueddate IS NOT NULL",
+};
+
 export const queries = {
   list(dataset: DatasetKey, loc: Locator, status: "open" | "closed" | undefined, limit: number): SoqlQuery {
     return {
       dataset,
-      where: and(locatorClause(dataset, loc), status ? STATUS_CLAUSE[dataset][status] : undefined),
+      // Recency lists only contain dated rows; callers report how many undated rows were left out.
+      where: and(locatorClause(dataset, loc), VALID_DATE[dataset], status ? STATUS_CLAUSE[dataset][status] : undefined),
       order: `${DATE_FIELD[dataset]} DESC`,
       limit,
     };
   },
-  count(dataset: DatasetKey, loc: Locator, status?: "open" | "closed"): SoqlQuery {
+  count(dataset: DatasetKey, loc: Locator, status?: "open" | "closed", datedOnly = false): SoqlQuery {
     return {
       dataset,
       select: "count(*) as n",
-      where: and(locatorClause(dataset, loc), status ? STATUS_CLAUSE[dataset][status] : undefined),
+      where: and(locatorClause(dataset, loc), datedOnly ? VALID_DATE[dataset] : undefined, status ? STATUS_CLAUSE[dataset][status] : undefined),
       limit: 1,
     };
   },
@@ -79,8 +93,19 @@ export const queries = {
     const f = STATUS_FIELD[dataset];
     return {
       dataset,
-      select: `${f}, count(*) as n, max(${DATE_FIELD[dataset]}) as latest`,
+      select: `${f}, count(*) as n`,
       where: locatorClause(dataset, loc),
+      group: f,
+      limit: 50,
+    };
+  },
+  /** Per-status counts and latest date among rows that have a usable date (max() over raw text would pick junk). */
+  datedStatusStats(dataset: DatasetKey, loc: Locator): SoqlQuery {
+    const f = STATUS_FIELD[dataset];
+    return {
+      dataset,
+      select: `${f}, count(*) as n, max(${DATE_FIELD[dataset]}) as latest`,
+      where: and(locatorClause(dataset, loc), VALID_DATE[dataset]),
       group: f,
       limit: 50,
     };

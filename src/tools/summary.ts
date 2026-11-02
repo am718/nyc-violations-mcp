@@ -16,22 +16,31 @@ function oneLine(v: Violation): string {
 }
 
 async function agencySummary(r: Resolver, agency: DatasetKey, loc: Locator) {
-  const [grouped, openRows] = await Promise.all([
-    r.socrata.query(queries.statusCounts(agency, loc)),
-    r.socrata.query(queries.list(agency, loc, "open", 5)),
-  ]);
+  const grouped = await r.socrata.query(queries.statusCounts(agency, loc));
+  const dated = await r.socrata.query(queries.datedStatusStats(agency, loc));
+  const openRows = await r.socrata.query(queries.list(agency, loc, "open", 5));
   const counts = { open: 0, closed: 0, unknown: 0 };
   const srcsExtra: SourceRef[] = [];
-  let latest: string | null = null;
+  const statusOf = (row: Record<string, unknown>) => {
+    const field = Object.keys(row).find((k) => k !== "n" && k !== "latest");
+    return STATUS_MAPPER[agency](field ? row[field] : undefined);
+  };
   for (const row of grouped.rows) {
     if (!isRow(row)) continue;
     const n = Number(row.n);
-    if (!Number.isFinite(n) || n < 0) continue;
-    const field = Object.keys(row).find((k) => k !== "n" && k !== "latest");
-    counts[STATUS_MAPPER[agency](field ? row[field] : undefined)] += Math.trunc(n);
+    if (Number.isFinite(n) && n >= 0) counts[statusOf(row)] += Math.trunc(n);
+  }
+  // Latest date and dated-open count come from rows with a usable date only (junk text dates would win max()).
+  let latest: string | null = null;
+  let datedOpen = 0;
+  for (const row of dated.rows) {
+    if (!isRow(row)) continue;
+    const n = Number(row.n);
+    if (statusOf(row) === "open" && Number.isFinite(n) && n >= 0) datedOpen += Math.trunc(n);
     const d = normalizeDate(row.latest);
     if (d && (!latest || d > latest)) latest = d;
   }
+  const undatedOpen = Math.max(0, counts.open - datedOpen);
   const total = counts.open + counts.closed + counts.unknown;
   let openWithNotes: number | null = null;
   if (agency === "dob" && counts.open > 0) {
@@ -40,11 +49,12 @@ async function agencySummary(r: Resolver, agency: DatasetKey, loc: Locator) {
     srcsExtra.push(src("dob", c.fetchedAt));
   }
   const { items } = mapRows(agency, openRows.rows);
-  const link = (extra = "") => `${SOCRATA_BASE}/${DATASETS[agency].id}.json?${LOC_FIELD[agency]}=${loc.by === "bin" ? loc.bin : loc.bbl}${extra}`;
-  const srcs: SourceRef[] = [src(agency, grouped.fetchedAt), src(agency, openRows.fetchedAt), ...srcsExtra];
+  const link = () => `${SOCRATA_BASE}/${DATASETS[agency].id}.json?${LOC_FIELD[agency]}=${loc.by === "bin" ? loc.bin : loc.bbl}`;
+  const srcs: SourceRef[] = [src(agency, grouped.fetchedAt), src(agency, dated.fetchedAt), src(agency, openRows.fetchedAt), ...srcsExtra];
   return {
     items,
     srcs,
+    undatedOpen,
     section:
       agency === "hpd" && total === 0
         ? { coverage: "no HPD coverage expected or none found", open: null, closed: null, most_recent_issue_date: null, note: HPD_COVERAGE_NOTE }
@@ -53,6 +63,7 @@ async function agencySummary(r: Resolver, agency: DatasetKey, loc: Locator) {
             closed: counts.closed,
             ...(counts.unknown ? { unknown: counts.unknown } : {}),
             most_recent_issue_date: latest,
+            open_undated_excluded_from_recent_list: undatedOpen,
             ...(total === 0 ? { note: "No records found in this dataset for this property; not proof of compliance." } : {}),
             ...(agency === "dob" ? { status_rule: 'open = "ACTIVE" in violation_category (heuristic)' } : {}),
             ...(openWithNotes
@@ -83,6 +94,13 @@ export async function buildingComplianceSummary(r: Resolver, a: { address?: stri
       ? [`This lot (BBL ${p.bbl}) holds about ${lot.count} other building(s) (other BINs); none of their records are included in these counts.`]
       : []),
     ...(p.match?.note ? [p.match.note] : []),
+    ...[
+      { k: "DOB", n: dob.undatedOpen },
+      { k: "ECB", n: ecb.undatedOpen },
+      { k: "HPD", n: hpd.undatedOpen },
+    ]
+      .filter((x) => x.n > 0)
+      .map((x) => `${x.n} open ${x.k} record(s) have no usable issue date and are left out of most_recent_open_items.`),
   ];
   return envelope([...p.sources, ...dob.srcs, ...ecb.srcs, ...hpd.srcs, ...lot.sources], {
     property: { address: p.address, bin: p.bin, bbl: p.bbl, borough: p.borough },

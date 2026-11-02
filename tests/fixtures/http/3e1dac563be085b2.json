@@ -1,0 +1,5 @@
+{
+ "url": "https://data.cityofnewyork.us/resource/6bgk-3dad.json?%24where=bin+%3D+%271015862%27+AND+%28issue_date+between+%2718000101%27+and+%2722001231%27+AND+issue_date+like+%27________%27%29+AND+ecb_violation_status+%3D+%27ACTIVE%27&%24order=issue_date+DESC&%24limit=5",
+ "status": 200,
+ "body": "[]"
+}

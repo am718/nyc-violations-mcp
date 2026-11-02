@@ -1,0 +1,5 @@
+{
+ "url": "https://data.cityofnewyork.us/resource/3h2n-5cm9.json?%24where=bin+%3D+%271085463%27+AND+%28issue_date+between+%2718000101%27+and+%2722001231%27+AND+issue_date+like+%27________%27%29+AND+upper%28violation_category%29+like+%27%25ACTIVE%25%27&%24order=issue_date+DESC&%24limit=5",
+ "status": 200,
+ "body": "[{\"isn_dob_bis_viol\":\"235066\",\"boro\":\"1\",\"bin\":\"1085463\",\"block\":\"00874\",\"lot\":\"00012\",\"issue_date\":\"19930816\",\"violation_type_code\":\"C\",\"violation_number\":\"STF08\",\"house_number\":\"117\",\"street\":\"EAST   18 STREET\",\"disposition_comments\":\"DELETED BY MLA ON 07/13/95 BECAUSE VIOLATION IS A SERVE ECB\",\"ecb_number\":\"34099158Y\",\"number\":\"V081693CSTF08\",\"violation_category\":\"V-DOB VIOLATION - ACTIVE\",\"violation_type\":\"C-CONSTRUCTION                                                    OTHER   OPTIONAL\"}]"
+}

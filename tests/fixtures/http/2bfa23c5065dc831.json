@@ -1,0 +1,5 @@
+{
+ "url": "https://data.cityofnewyork.us/resource/3h2n-5cm9.json?%24select=violation_category%2C+count%28*%29+as+n&%24where=bin+%3D+%271085463%27&%24group=violation_category&%24limit=50",
+ "status": 200,
+ "body": "[{\"violation_category\":\"V*-DOB VIOLATION - Resolved\",\"n\":\"13\"},{\"violation_category\":\"V-DOB VIOLATION - ACTIVE\",\"n\":\"1\"},{\"violation_category\":\"V*-DOB VIOLATION - DISMISSED\",\"n\":\"47\"},{\"violation_category\":\"VW-VIOLATION WORK WITHOUT PERMIT - ACTIVE\",\"n\":\"1\"},{\"violation_category\":\"VP*-VIOLATION UNSERVED ECB- DISMISSED\",\"n\":\"1\"}]"
+}

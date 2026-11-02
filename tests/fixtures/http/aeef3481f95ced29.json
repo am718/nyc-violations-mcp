@@ -1,0 +1,5 @@
+{
+ "url": "https://data.cityofnewyork.us/resource/wvxf-dwi5.json?%24where=bin+%3D+%271082869%27+AND+novissueddate+IS+NOT+NULL+AND+violationstatus+%3D+%27Open%27&%24order=novissueddate+DESC&%24limit=5",
+ "status": 200,
+ "body": "[]"
+}

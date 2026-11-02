@@ -26,12 +26,19 @@ export interface ListArgs {
 
 async function listViolations(r: Resolver, agency: DatasetKey, loc: Locator, args: ListArgs, extraSources: SourceRef[] = []) {
   const total = await r.socrata.count(queries.count(agency, loc, args.status));
+  const dated = await r.socrata.count(queries.count(agency, loc, args.status, true));
   const page = await r.socrata.query(queries.list(agency, loc, args.status, args.limit));
+  const undated = Math.max(0, total.n - dated.n);
   const { items, skipped } = mapRows(agency, page.rows);
   items.sort(byDateDesc);
   const notes: string[] = [];
   if (skipped > 0) notes.push(`${skipped} malformed row(s) without an identifier were skipped.`);
   if (agency === "dob") notes.push('DOB status is derived from violation_category ("ACTIVE" = open); this is a heuristic.');
+  if (undated > 0) {
+    notes.push(
+      `${undated} matching record(s) have no usable issue date and are left out of this newest-first list (they are still counted in total_matching).`,
+    );
+  }
   if (total.n === 0) {
     notes.push(
       agency === "hpd"
@@ -45,13 +52,14 @@ async function listViolations(r: Resolver, agency: DatasetKey, loc: Locator, arg
     query: { ...(loc.by === "bin" ? { bin: loc.bin } : { bbl: loc.bbl }), status: args.status ?? "any", limit: args.limit },
     total_matching: total.n,
     returned: items.length,
-    ...(total.n > items.length ? { more_available: true } : {}),
+    ...(dated.n > items.length ? { more_available: true } : {}),
+    undated_excluded: undated,
     ...(agency === "hpd" && total.n === 0 ? { coverage: "no HPD coverage expected or none found" } : {}),
     violations: items,
     ...(notes.length ? { notes } : {}),
   };
   return capList(
-    envelope([src(agency, page.fetchedAt), src(agency, total.fetchedAt), ...extraSources], body),
+    envelope([src(agency, page.fetchedAt), src(agency, total.fetchedAt), src(agency, dated.fetchedAt), ...extraSources], body),
     "violations",
     LIMITS.maxResponseChars,
   );

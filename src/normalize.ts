@@ -114,7 +114,7 @@ export function mapRow(agency: DatasetKey, row: unknown): Violation | null {
   return {
     agency,
     id,
-    issue_date: normalizeDate(row.novissueddate) ?? normalizeDate(row.inspectiondate),
+    issue_date: normalizeDate(row.novissueddate), // NOV issue date; undated rows are excluded from recency lists upstream
     status: STATUS_MAPPER.hpd(row.violationstatus),
     status_raw: cleanText(row.violationstatus, 40),
     type: cleanText(row.class ? `Class ${String(row.class).slice(0, 2)}` : null, 20),

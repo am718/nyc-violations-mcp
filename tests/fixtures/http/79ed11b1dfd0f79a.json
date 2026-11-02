@@ -1,0 +1,5 @@
+{
+ "url": "https://data.cityofnewyork.us/resource/6bgk-3dad.json?%24select=ecb_violation_status%2C+count%28*%29+as+n&%24where=bin+%3D+%271015862%27&%24group=ecb_violation_status&%24limit=50",
+ "status": 200,
+ "body": "[{\"ecb_violation_status\":\"RESOLVE\",\"n\":\"241\"}]"
+}

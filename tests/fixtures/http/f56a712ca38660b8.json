@@ -1,5 +1,0 @@
-{
- "url": "https://data.cityofnewyork.us/resource/wvxf-dwi5.json?%24select=violationstatus%2C+count%28*%29+as+n%2C+max%28novissueddate%29+as+latest&%24where=bin+%3D+%271082881%27&%24group=violationstatus&%24limit=50",
- "status": 200,
- "body": "[{\"violationstatus\":\"Close\",\"n\":\"62\",\"latest\":\"2025-12-19T00:00:00.000\"},{\"violationstatus\":\"Open\",\"n\":\"1\",\"latest\":\"2024-08-15T00:00:00.000\"}]"
-}

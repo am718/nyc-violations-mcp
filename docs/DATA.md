@@ -61,6 +61,18 @@ hearing status is e.g. `WRITTEN OFF` (59,165 citywide rows); the hearing status 
 DOB/ECB `YYYYMMDD` text and HPD ISO timestamps are normalized to `YYYY-MM-DD` before merging/sorting. Unparseable values
 become `null` (sorted last). HPD "issue date" = `novissueddate` (falls back to `inspectiondate`).
 
+### Recency ordering and undated rows (verified live 2026-11-01)
+- Socrata sorts NULLs **first** on `DESC`. `NULLS LAST` is accepted, but the server does not rely on it: recency queries
+  filter to rows with a usable date instead.
+- HPD: 812,468 rows have no `novissueddate` (228,588 of them Open). Filter: `novissueddate IS NOT NULL`.
+  The HPD issue date is the NOV issue date only (no fallback to inspection date).
+- DOB `issue_date` is text with junk values (30 rows not 8-digit: e.g. `Y30819`, `0306`, `000000`; 1 null). Because text sorts
+  lexically, `Y30819` sorts ABOVE `20211007`. ECB has 64 such rows (e.g. `0`). Filter for DOB/ECB:
+  `issue_date between '18000101' and '22001231' AND issue_date like '________'`.
+- Recency lists (`get_*_violations`, `most_recent_open_items`) contain dated rows only and report how many matching rows were left
+  out (`undated_excluded`, `open_undated_excluded_from_recent_list`). `total_matching` and the open/closed counts still include them.
+- `most_recent_issue_date` is `max()` over dated rows only.
+
 ## Caveats
 - Open data lags official systems (DOB BIS/DOB NOW, HPD, OATH). Counts can differ from the city's live property pages.
 - Dataset IDs and fields can change; re-verify before relying on them.
