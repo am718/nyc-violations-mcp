@@ -63,16 +63,22 @@ export const addressSchema = z
   .describe("NYC street address including borough, e.g. \"350 5th Ave, Manhattan\".");
 
 export const statusSchema = z
-  .enum(["open", "closed"], { error: "status must be \"open\" or \"closed\". Omit it to include both." })
+  .preprocess(
+    // Case-insensitive input ("Open", "OPEN"); the published JSON schema keeps the enum ["open","closed"] (verified through the MCP SDK).
+    (v) => (typeof v === "string" ? v.trim().toLowerCase() : v),
+    z.enum(["open", "closed"], { error: 'status must be "open" or "closed" (any letter case). Omit it to include both.' }),
+  )
   .optional()
-  .describe("Filter by status: \"open\" or \"closed\". Omit for both.");
+  .describe('Filter by status: "open" or "closed" (any letter case). Omit for both.');
 
 export function limitSchema(def: number, max: number) {
-  return z.coerce
-    .number({ error: `limit must be a whole number from 1 to ${max} (default ${def}).` })
-    .int(`limit must be a whole number from 1 to ${max} (default ${def}).`)
-    .min(1, `limit must be at least 1 (max ${max}).`)
-    .max(max, `limit cannot exceed ${max}. Use status filters or ask for a summary instead of larger pages.`)
+  const msg = `limit must be a plain whole number from 1 to ${max} (default ${def}), e.g. ${def}. Not accepted: true/false, hex like "0x10", decimals, exponents like "1e2", signs, spaces or padded numbers like "007".`;
+  return z
+    .preprocess(
+      // Only real integers or plain decimal digit strings without leading zeros; everything else is left as-is so validation fails.
+      (v) => (typeof v === "string" && /^[1-9]\d{0,5}$/.test(v) ? Number(v) : v),
+      z.number({ error: msg }).int(msg).min(1, `limit must be at least 1 (max ${max}).`).max(max, `limit cannot exceed ${max}. Use status filters or ask for a summary instead of larger pages.`),
+    )
     .default(def)
     .describe(`Max records to return (1-${max}, default ${def}).`);
 }

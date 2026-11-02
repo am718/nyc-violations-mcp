@@ -134,19 +134,20 @@ describe("resilience (synthetic stubbed responses)", () => {
     const f = stubFetch([{ error: true, message: "boom" }]);
     await expect(getDobViolations(makeResolver(f), { bin: ESB.bin, limit: 5 })).rejects.toThrow(/unexpected response shape/);
   });
-  it("malformed rows: skipped, junk fields nulled, no crash", async () => {
+  it("malformed rows: skipped; rows with a junk date are removed and counted as invalid; no crash", async () => {
     const rows = [
       "not an object",
       null,
       { issue_date: "20200101" }, // no identifier
-      { isn_dob_bis_viol: "1", issue_date: "7", violation_category: 42, description: { nested: true } },
+      { isn_dob_bis_viol: "1", issue_date: "7", violation_category: 42, description: { nested: true } }, // junk date, junk fields
       { isn_dob_bis_viol: "2", issue_date: "20200101", violation_category: "V-DOB VIOLATION - ACTIVE", description: "ok" },
     ];
-    const f = stubFetch([[{ n: "5" }], rows]);
+    const f = stubFetch([[{ n: "5" }], [{ n: "5" }], rows]);
     const out = await getDobViolations(makeResolver(f), { bin: ESB.bin, limit: 25 });
-    expect(out.returned).toBe(2);
+    expect(out.returned).toBe(1);
+    expect(out.violations[0]!.id).toBe("2");
     expect(JSON.stringify(out.notes)).toMatch(/3 malformed row\(s\)/);
-    expect(out.violations.find((v) => v.id === "1")).toMatchObject({ issue_date: null, status: "unknown", description: null });
+    expect(out.undated_excluded).toBe(1); // the junk-date row
   });
   it("malformed count value falls back to 0 instead of NaN", async () => {
     const f = stubFetch([[{ n: "abc" }], []]);
@@ -360,7 +361,7 @@ describe("fix 2: recency order excludes undated rows and reports how many (recor
     for (const v of out.violations) expect(v.issue_date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     const d = out.violations.map((v) => v.issue_date);
     expect([...d].sort().reverse()).toEqual(d);
-    expect(JSON.stringify(out.notes)).toMatch(/no usable issue date/);
+    expect(JSON.stringify(out.notes)).toMatch(/missing or invalid issue date/);
   });
   it("DOB with a junk text date ('Y30819', bin 1085463) does not put junk first", async () => {
     const out = await getDobViolations(makeResolver(fixtureFetch()), { bin: "1085463", limit: 5 });
@@ -380,16 +381,17 @@ describe("fix 2: recency order excludes undated rows and reports how many (recor
     expect(dob.most_recent_issue_date).toMatch(/^20\d\d-\d\d-\d\d$/);
     expect(dob).toHaveProperty("open_undated_excluded_from_recent_list");
   });
-  it("synthetic: null / junk-dated rows from a stub cannot sort above real dates in the tool output", async () => {
+  it("synthetic: impossible / null dates that slip past SoQL are removed from the list and counted as invalid", async () => {
     const rows = [
       { isn_dob_bis_viol: "1", issue_date: "20200101", violation_category: "V-DOB VIOLATION - ACTIVE" },
-      { isn_dob_bis_viol: "2", issue_date: "Y30819", violation_category: "V-DOB VIOLATION - ACTIVE" }, // would pass a naive sort
-      { isn_dob_bis_viol: "3", violation_category: "V-DOB VIOLATION - ACTIVE" },
+      { isn_dob_bis_viol: "2", issue_date: "19900229", violation_category: "V-DOB VIOLATION - ACTIVE" }, // Feb 29 in a non-leap year
+      { isn_dob_bis_viol: "3", violation_category: "V-DOB VIOLATION - ACTIVE" }, // no date at all
     ];
-    const out = await getDobViolations(makeResolver(stubFetch([[{ n: "3" }], [{ n: "1" }], rows])), { bin: ESB.bin, limit: 5 });
-    expect(out.violations.map((v) => v.id)).toEqual(["1", "2", "3"]); // dated first, junk/null last
-    expect(out.violations[1]!.issue_date).toBeNull();
+    // total 3, SoQL counted all 3 as dated (so 0 undated upstream), the page returned the 3 rows
+    const out = await getDobViolations(makeResolver(stubFetch([[{ n: "3" }], [{ n: "3" }], rows])), { bin: ESB.bin, limit: 5 });
+    expect(out.violations.map((v) => v.id)).toEqual(["1"]);
     expect(out.undated_excluded).toBe(2);
+    expect(out.returned).toBe(1);
   });
 });
 

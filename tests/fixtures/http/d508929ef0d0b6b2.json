@@ -1,0 +1,5 @@
+{
+ "url": "https://data.cityofnewyork.us/resource/3h2n-5cm9.json?%24select=violation_category%2C+count%28*%29+as+n%2C+max%28issue_date%29+as+latest&%24where=bin+%3D+%271082869%27+AND+%28issue_date+between+%2718000101%27+and+%2722001231%27+AND+issue_date+like+%27________%27+AND+substring%28issue_date%2C5%2C2%29+between+%2701%27+and+%2712%27+AND+substring%28issue_date%2C7%2C2%29+between+%2701%27+and+%2731%27+AND+NOT+%28substring%28issue_date%2C5%2C2%29+%3D+%2702%27+AND+substring%28issue_date%2C7%2C2%29+%3E+%2729%27%29+AND+NOT+%28substring%28issue_date%2C5%2C2%29+in+%28%2704%27%2C%2706%27%2C%2709%27%2C%2711%27%29+AND+substring%28issue_date%2C7%2C2%29+%3D+%2731%27%29%29&%24group=violation_category&%24limit=50",
+ "status": 200,
+ "body": "[{\"violation_category\":\"V-DOB VIOLATION - ACTIVE\",\"n\":\"3\",\"latest\":\"19881005\"},{\"violation_category\":\"V*-DOB VIOLATION - DISMISSED\",\"n\":\"3\",\"latest\":\"20231004\"},{\"violation_category\":\"V*-DOB VIOLATION - Resolved\",\"n\":\"121\",\"latest\":\"20180410\"}]"
+}

@@ -1,5 +1,0 @@
-{
- "url": "https://data.cityofnewyork.us/resource/3h2n-5cm9.json?%24select=violation_category%2C+count%28*%29+as+n%2C+max%28issue_date%29+as+latest&%24where=bin+%3D+%271015862%27+AND+%28issue_date+between+%2718000101%27+and+%2722001231%27+AND+issue_date+like+%27________%27%29&%24group=violation_category&%24limit=50",
- "status": 200,
- "body": "[{\"violation_category\":\"V*-DOB VIOLATION - Resolved\",\"n\":\"533\",\"latest\":\"20210805\"},{\"violation_category\":\"V-DOB VIOLATION - ACTIVE\",\"n\":\"7\",\"latest\":\"20101209\"},{\"violation_category\":\"VW*-VIOLATION - WORK W/O PERMIT DISMISSED\",\"n\":\"5\",\"latest\":\"20110615\"},{\"violation_category\":\"V*-DOB VIOLATION - DISMISSED\",\"n\":\"146\",\"latest\":\"20230620\"}]"
-}

@@ -28,15 +28,20 @@ async function listViolations(r: Resolver, agency: DatasetKey, loc: Locator, arg
   const total = await r.socrata.count(queries.count(agency, loc, args.status));
   const dated = await r.socrata.count(queries.count(agency, loc, args.status, true));
   const page = await r.socrata.query(queries.list(agency, loc, args.status, args.limit));
-  const undated = Math.max(0, total.n - dated.n);
-  const { items, skipped } = mapRows(agency, page.rows);
+  const mapped = mapRows(agency, page.rows);
+  const skipped = mapped.skipped;
+  // Rows the SoQL filter counted as dated but whose date is not a real calendar date (e.g. Feb 29 in a non-leap year) are
+  // treated as invalid: removed from the recency list and added to the undated/invalid count.
+  const invalidInPage = mapped.items.filter((v) => v.issue_date === null).length;
+  const items = mapped.items.filter((v) => v.issue_date !== null);
   items.sort(byDateDesc);
+  const undated = Math.max(0, total.n - dated.n) + invalidInPage;
   const notes: string[] = [];
   if (skipped > 0) notes.push(`${skipped} malformed row(s) without an identifier were skipped.`);
   if (agency === "dob") notes.push('DOB status is derived from violation_category ("ACTIVE" = open); this is a heuristic.');
   if (undated > 0) {
     notes.push(
-      `${undated} matching record(s) have no usable issue date and are left out of this newest-first list (they are still counted in total_matching).`,
+      `${undated} matching record(s) have a missing or invalid issue date and are left out of this newest-first list (they are still counted in total_matching).`,
     );
   }
   if (total.n === 0) {
@@ -52,7 +57,7 @@ async function listViolations(r: Resolver, agency: DatasetKey, loc: Locator, arg
     query: { ...(loc.by === "bin" ? { bin: loc.bin } : { bbl: loc.bbl }), status: args.status ?? "any", limit: args.limit },
     total_matching: total.n,
     returned: items.length,
-    ...(dated.n > items.length ? { more_available: true } : {}),
+    ...(dated.n - invalidInPage > items.length ? { more_available: true } : {}),
     undated_excluded: undated,
     ...(agency === "hpd" && total.n === 0 ? { coverage: "no HPD coverage expected or none found" } : {}),
     violations: items,

@@ -67,9 +67,16 @@ const DATE_FIELD: Record<DatasetKey, string> = { dob: "issue_date", ecb: "issue_
  *    lexically (e.g. "Y30819" sorts ABOVE "2021..."). Valid dates are 8 characters within 1800-2200.
  *  - HPD `novissueddate` is a real timestamp: only NULLs need excluding (812k rows are null).
  */
+// Real calendar bounds that SoQL can express on the text: month 01-12, day 01-31, no Feb 30/31, no 31st in 30-day months.
+// Feb 29 in a non-leap year cannot be expressed here (3 DOB rows citywide on 2026-11-02); the tools catch those in code.
+const TEXT_DATE =
+  "(issue_date between '18000101' and '22001231' AND issue_date like '________'" +
+  " AND substring(issue_date,5,2) between '01' and '12' AND substring(issue_date,7,2) between '01' and '31'" +
+  " AND NOT (substring(issue_date,5,2) = '02' AND substring(issue_date,7,2) > '29')" +
+  " AND NOT (substring(issue_date,5,2) in ('04','06','09','11') AND substring(issue_date,7,2) = '31'))";
 export const VALID_DATE: Record<DatasetKey, string> = {
-  dob: "(issue_date between '18000101' and '22001231' AND issue_date like '________')",
-  ecb: "(issue_date between '18000101' and '22001231' AND issue_date like '________')",
+  dob: TEXT_DATE,
+  ecb: TEXT_DATE,
   hpd: "novissueddate IS NOT NULL",
 };
 

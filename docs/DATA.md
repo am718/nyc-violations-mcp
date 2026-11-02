@@ -84,6 +84,10 @@ become `null` (sorted last). HPD "issue date" = `novissueddate` (falls back to `
 - DOB `issue_date` is text with junk values (30 rows not 8-digit: e.g. `Y30819`, `0306`, `000000`; 1 null). Because text sorts
   lexically, `Y30819` sorts ABOVE `20211007`. ECB has 64 such rows (e.g. `0`). Filter for DOB/ECB:
   `issue_date between '18000101' and '22001231' AND issue_date like '________'`.
+- **Calendar validity (2026-11-02).** The DOB/ECB filter also requires month 01-12, day 01-31, no Feb 30/31 and no 31st in 30-day months.
+  Live, this moves 10 more DOB rows (e.g. `19108124`) into the undated/invalid count; ECB loses none. Feb 29 in a non-leap year cannot be
+  expressed in SoQL (3 DOB rows citywide, years 1990 and 1991), so the tools drop any returned row whose date is not a real calendar date
+  and add it to the undated/invalid count; for those 3 rows the count is exact only when the row is on the returned page.
 - Recency lists (`get_*_violations`, `most_recent_open_items`) contain dated rows only and report how many matching rows were left
   out (`undated_excluded`, `open_undated_excluded_from_recent_list`). `total_matching` and the open/closed counts still include them.
 - `most_recent_issue_date` is `max()` over dated rows only.

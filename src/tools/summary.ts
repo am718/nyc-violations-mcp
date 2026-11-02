@@ -41,7 +41,7 @@ async function agencySummary(r: Resolver, agency: DatasetKey, loc: Locator) {
     const d = normalizeDate(row.latest);
     if (d && (!latest || d > latest)) latest = d;
   }
-  const undatedOpen = Math.max(0, counts.open - datedOpen);
+  const undatedOpenBase = Math.max(0, counts.open - datedOpen);
   const total = counts.open + counts.closed + counts.unknown;
   // Second count: open records annotated as deleted (DOB) / written off (ECB). Raw `open` is kept unchanged.
   let flagged: number | null = null;
@@ -50,7 +50,11 @@ async function agencySummary(r: Resolver, agency: DatasetKey, loc: Locator) {
     flagged = Math.min(c.n, counts.open);
     srcsExtra.push(src(agency, c.fetchedAt));
   }
-  const { items } = mapRows(agency, openRows.rows);
+  const mappedOpen = mapRows(agency, openRows.rows).items;
+  // Open rows counted as dated by SoQL but with an impossible calendar date are invalid: left out and counted as undated.
+  const invalidOpen = mappedOpen.filter((v) => v.issue_date === null).length;
+  const items = mappedOpen.filter((v) => v.issue_date !== null);
+  const undatedOpen = undatedOpenBase + invalidOpen;
   const link = () => `${SOCRATA_BASE}/${DATASETS[agency].id}.json?${LOC_FIELD[agency]}=${loc.by === "bin" ? loc.bin : loc.bbl}`;
   const srcs: SourceRef[] = [src(agency, grouped.fetchedAt), src(agency, dated.fetchedAt), src(agency, openRows.fetchedAt), ...srcsExtra];
   return {
@@ -114,7 +118,7 @@ export async function buildingComplianceSummary(r: Resolver, a: { address?: stri
   }
   if (p.match?.note) dq.push(p.match.note);
   for (const [k, n] of [["DOB", dob.undatedOpen], ["ECB", ecb.undatedOpen], ["HPD", hpd.undatedOpen]] as const) {
-    if (n > 0) dq.push(`${n} open ${k} record(s) have no usable issue date and are left out of most_recent_open_items.`);
+    if (n > 0) dq.push(`${n} open ${k} record(s) have a missing or invalid issue date and are left out of most_recent_open_items.`);
   }
   return envelope([...p.sources, ...dob.srcs, ...ecb.srcs, ...hpd.srcs, ...lot.sources], {
     data_quality_notes: dq,

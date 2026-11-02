@@ -66,6 +66,8 @@ await attempt("esb hpd", () => getHpdViolations(r, { bbl: ESB.bbl, limit: 5 }));
 await attempt("resolve bin", () => resolvePropertyTool(r, { bin: ESB.bin }));
 await attempt("resolve bbl", () => resolvePropertyTool(r, { bbl: ESB.bbl }));
 await attempt("mismatch", () => resolvePropertyTool(r, { bin: ESB.bin, bbl: "1008350042" }));
+await attempt("mismatch chrysler lot", () => resolvePropertyTool(r, { bin: ESB.bin, bbl: "1012970023" }));
+await attempt("matching pair", () => resolvePropertyTool(r, { bin: ESB.bin, bbl: ESB.bbl }));
 await attempt("no match", () => resolvePropertyTool(r, { address: "zzzz nowhere qq" }));
 await attempt("injection address", () => resolvePropertyTool(r, { address: "1 Main St'; DROP TABLE x; -- $where=1=1" }));
 // Multi-building lot (Stuyvesant Town: ~35 BINs on one lot)

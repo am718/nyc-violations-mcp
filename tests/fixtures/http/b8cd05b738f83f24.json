@@ -1,5 +1,0 @@
-{
- "url": "https://data.cityofnewyork.us/resource/3h2n-5cm9.json?%24select=violation_category%2C+count%28*%29+as+n%2C+max%28issue_date%29+as+latest&%24where=bin+%3D+%272099579%27+AND+%28issue_date+between+%2718000101%27+and+%2722001231%27+AND+issue_date+like+%27________%27%29&%24group=violation_category&%24limit=50",
- "status": 200,
- "body": "[]"
-}

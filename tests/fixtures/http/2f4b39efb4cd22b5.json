@@ -1,5 +1,0 @@
-{
- "url": "https://data.cityofnewyork.us/resource/3h2n-5cm9.json?%24select=count%28*%29+as+n&%24where=bin+%3D+%271085463%27+AND+%28issue_date+between+%2718000101%27+and+%2722001231%27+AND+issue_date+like+%27________%27%29&%24limit=1",
- "status": 200,
- "body": "[{\"n\":\"62\"}]"
-}
