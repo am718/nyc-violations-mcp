@@ -86,7 +86,7 @@ returned as data, and accompanied by the notice. There is no sanitization of ins
 5. The BIN/BBL "agree" check relies on DOB lot data (and HPD); it does not consult an authoritative PAD source.
 6. GeoSearch match quality: confidence is reported (0.8 for the Empire State Building) but low-confidence matches are not rejected.
 7. Rate limiter is per-process; two server instances can exceed 1 req/sec in aggregate. Worst-case latency with retries is long (3 attempts x 15 s per request).
-8. Fixture lookup is keyed by exact request URL: changing the query builder requires re-recording (`record-fixtures`). Fixtures are re-recorded from live APIs; ECB `respondent_*` fields are redacted at record time (free-text descriptions are not). The ORIGINAL 6 commits still contain unredacted fixtures until the history rewrite is done.
+8. Fixture lookup is keyed by exact request URL: changing the query builder requires re-recording (`record-fixtures`). Fixtures are re-recorded from live APIs; ECB `respondent_*` fields are redacted at record time (free-text descriptions are not). All commits, including the original ones, now hold redacted fixtures (history was rewritten and scrubbed).
 9. `src/index.ts` (cache fallback, wiring) is not unit tested; exercised only by Inspector/Claude Code runs.
 10. SDK validation errors for bad input arrive as MCP error -32602 text ("... at bin"), not as the server's own wording; the zod messages are included.
 11. `status` filter lists exclude `unknown`-status rows (counts in the summary include an `unknown` bucket when present).
@@ -99,26 +99,26 @@ returned as data, and accompanied by the notice. There is no sanitization of ins
 - Claude Desktop test; `claude mcp add` persistent install test; Inspector web UI session (CLI only).
 - Visual comparison against the Open Data web UI and official city systems (manual steps are in `docs/VALIDATION.md`).
 - App-token path never run with a real token (header behavior is unit tested with a fake token).
-- Git history rewrite (author email, scrub of old fixtures) is BLOCKED pending the GitHub noreply address.
+- (Done) Git history rewritten: noreply author/committer on every commit; old fixtures scrubbed. Verified with the searches in the session transcript.
 - HPD list pagination beyond `limit` (max 100) is not offered (by design: summaries first), so full histories are not retrievable.
 - Dataset `rowsUpdatedAt` is recorded in DATA.md as of 2026-11-01 only; no freshness check at runtime.
 
 ## 7. Fixes (second pass, responding to REVIEW_REPORT.md; REVIEW_REPORT.md is unchanged)
 
-Commits are listed oldest to newest. Hashes are for the history as of this pass; **they will change if the history is rewritten.**
+Commits are listed oldest to newest. The hashes are those of the **rewritten** history (author/committer set to the GitHub noreply address; old fixtures scrubbed of ECB respondent names). The pre-rewrite history exists only in a backup bundle kept outside the repo.
 
 | Finding (REVIEW_REPORT.md) | Status | Commit | What changed / evidence |
 |---|---|---|---|
-| M1 summary mixes BIN and lot footprints; README:155 false | Fixed | `77bc280` Fix 1 | DOB, ECB, HPD all by the resolved BIN; `footprint` + `other_bins_on_lot` always returned; README corrected. Tests "fix 1: consistent footprint" with a recorded Stuyvesant Town lot |
-| M2 HPD "newest first" wrong (NULLs first) | Fixed | `21f9999` Fix 2 | Verified live: NULLs sort first on DESC, `NULLS LAST` accepted but not relied on. Recency queries filter to dated rows; `undated_excluded` reported. Same check applied to DOB/ECB: junk text dates (e.g. `Y30819`) sorted above real ones, now filtered. Tests "fix 2" (live fixtures + synthetic junk) |
-| M3 "open" counts mislead; warnings buried | Fixed (heuristic, documented) | `aabf1ad` Fix 3 | Raw `open` kept; added DOB `open_excluding_deleted` and ECB `open_excluding_written_off`; `data_quality_notes` is the first key of the summary; flagged items marked, not reclassified. docs/DATA.md and README document the rule. Tests "fix 3" (Empire State 7 raw / 0 excluding; Grand Central ECB) |
-| m1 `limit` max 100 vs size cap | Fixed (documented) | `39d128f` Fix 4 | Tool descriptions and README state the ~12,000-char cap and `truncated`. Also fixed in `aabf1ad`: the cap was exceeded by ~160 chars because truncation fields were added after measuring |
-| m2 fixtures hold respondent names; personal author email | Fixtures: fixed in new commits. History/author: BLOCKED | `77bc280` (redaction at record time) | Old commits still contain unredacted fixtures and the personal author address; rewrite needs the GitHub noreply address (asked). `LICENSE` also names the user: left for the user to decide |
-| m3 untrusted-text notice placement | Fixed | `aabf1ad`, `39d128f` | `notice` and `untrusted_text_fields` precede the data in every response; docs note that record text also drives classification |
+| M1 summary mixes BIN and lot footprints; README:155 false | Fixed | `655341e` Fix 1 | DOB, ECB, HPD all by the resolved BIN; `footprint` + `other_bins_on_lot` always returned; README corrected. Tests "fix 1: consistent footprint" with a recorded Stuyvesant Town lot |
+| M2 HPD "newest first" wrong (NULLs first) | Fixed | `653ff44` Fix 2 | Verified live: NULLs sort first on DESC, `NULLS LAST` accepted but not relied on. Recency queries filter to dated rows; `undated_excluded` reported. Same check applied to DOB/ECB: junk text dates (e.g. `Y30819`) sorted above real ones, now filtered. Tests "fix 2" (live fixtures + synthetic junk) |
+| M3 "open" counts mislead; warnings buried | Fixed (heuristic, documented) | `720a0d4` Fix 3 | Raw `open` kept; added DOB `open_excluding_deleted` and ECB `open_excluding_written_off`; `data_quality_notes` is the first key of the summary; flagged items marked, not reclassified. docs/DATA.md and README document the rule. Tests "fix 3" (Empire State 7 raw / 0 excluding; Grand Central ECB) |
+| m1 `limit` max 100 vs size cap | Fixed (documented) | `4288686` Fix 4 | Tool descriptions and README state the ~12,000-char cap and `truncated`. Also fixed in `720a0d4`: the cap was exceeded by ~160 chars because truncation fields were added after measuring |
+| m2 fixtures hold respondent names; personal author email | Fixed (new fixtures and rewritten history) | `655341e` (redaction at record time) | History rewritten: every commit has the noreply author/committer and redacted fixtures. `LICENSE` keeps the user's full name by the user's decision |
+| m3 untrusted-text notice placement | Fixed | `720a0d4`, `4288686` | `notice` and `untrusted_text_fields` precede the data in every response; docs note that record text also drives classification |
 | m4 case-sensitive status enum | Deliberately not fixed | n/a | A case-insensitive pre-process would erase the `enum` from the JSON schema that agents read; the error message already says exactly what to send |
 | m5 loose coercion (arrays accepted; unknown keys ignored) | Deliberately not fixed | n/a | Harmless (verified the emitted query is unchanged); the SDK builds a non-strict object from the shape, and rejecting arrays would also require dropping the clean JSON schema |
-| m6 Retry-After ignored; per-process limiter; no token test; index.ts untested | Partly fixed | `39d128f` | Retry-After honored (capped at 10 s) and tested; X-App-Token header unit test (fake token). Not fixed: per-process limiter (documented), `src/index.ts` wiring untested (listed above), worst-case latency (documented) |
-| m7 summary performance | Mitigated | `39d128f` | Summary now ~11-12 requests (~12 s cold); tool description says results are cached for an hour and not to call repeatedly |
+| m6 Retry-After ignored; per-process limiter; no token test; index.ts untested | Partly fixed | `4288686` | Retry-After honored (capped at 10 s) and tested; X-App-Token header unit test (fake token). Not fixed: per-process limiter (documented), `src/index.ts` wiring untested (listed above), worst-case latency (documented) |
+| m7 summary performance | Mitigated | `4288686` | Summary now ~11-12 requests (~12 s cold); tool description says results are cached for an hour and not to call repeatedly |
 
 Re-verification after the fixes: `npm test` (64 passing, no-network guard on), `scripts/inspector-check.sh` (all 5 tools, evidence refreshed), `npm run validate`
 (10 of 10 buildings match independent direct queries, by BIN; `docs/VALIDATION.md` regenerated; web-UI comparison still UNVERIFIED), example conversations regenerated
