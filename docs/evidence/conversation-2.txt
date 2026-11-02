@@ -1,3 +1,3 @@
-No HPD violation records turned up for 350 5th Ave (BBL 1008350041, BIN 1015862). That doesn't show the building is clean. This address is the Empire State Building, which is commercial. HPD only covers residential buildings, so it wouldn't be expected to have records there.
+Probably not. 350 5th Ave (the Empire State Building, BIN 1015862) shows 7 DOB records marked "ACTIVE", but all 7 are old elevator violations from 1988–2010. Every one carries a disposition note saying it was deleted. The reasons given include wrong address, entered in error and incorrect date. The 1988 record actually belongs to 34 Fletcher St.
 
-The address match had only 0.8 confidence, so confirm the BBL is the right property. To check compliance, look at DOB and ECB violations, which I can pull if you want. Open-data extracts can also lag the city's official systems.
+The "open" status is a heuristic based on the record's category, so these are most likely stale entries and not outstanding violations. The data can also lag the city's systems. To be certain, check DOB's BIS/DOB NOW portal. This lookup covered DOB only, not ECB or HPD.

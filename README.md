@@ -83,24 +83,26 @@ scripts/inspector-check.sh            # calls all 5 tools via the Inspector CLI 
 
 ## Example conversations (real output)
 
-Both were run with Claude Code against the live server on 2026-11-01 (`docs/evidence/conversation-1.txt`, `-2.txt`).
+Both were run with Claude Code against the live server on 2026-11-02 after the fix pass (`docs/evidence/conversation-1.txt`, `-2.txt`).
 
 **1.** *"What's the violation situation at 1 Stuyvesant Oval, Manhattan?"* (tool used: `building_compliance_summary`)
 
-> **1 Stuyvesant Oval (Stuyvesant Town), BIN 1082881, BBL 1009720001**
-> - **HPD:** 15 open and 611 closed. The latest were issued 2026-10-02. They are mostly plaster and paint repairs (§ 27-2005). One open item from 2025-12-31 says apartments were vacated by HPD and can't be reoccupied until HPD orders it.
-> - **DOB:** 0 open and 33 closed. The latest was issued 2020-04-07.
-> - **ECB:** 0 open and 1 closed, from 2002.
+> **1 Stuyvesant Oval (BIN 1082881, BBL 1009720001)** has one open violation across the three agencies.
 >
-> Caveats: open-data extracts can lag official city systems; DOB "open" status is a heuristic; only the 5 most recent open items were listed, so severity classes weren't available; not legal advice.
-
-**2.** *"Is 350 5th Ave, Manhattan clean on HPD violations?"*
-
-> No HPD violation records turned up for 350 5th Ave (BBL 1008350041, BIN 1015862). That doesn't show the building is clean. This address is the Empire State Building, which is commercial. HPD only covers residential buildings, so it wouldn't be expected to have records there.
+> - **HPD:** 1 open, 62 closed. The open one is violation 17193699, issued 2024-08-15, for mold over 10 sq ft that needs its source traced and repaired. The most recent HPD issue date is 2025-12-19.
+> - **DOB:** 0 open, 33 closed. The latest was issued 2020-04-07.
+> - **ECB:** 0 open, 1 closed, from 2002.
 >
-> The address match had only 0.8 confidence, so confirm the BBL is the right property. To check compliance, look at DOB and ECB violations, which I can pull if you want. Open-data extracts can also lag the city's official systems.
+> Caveats: the counts cover only this BIN. The lot holds about 34 other buildings, and their violations are not included. DOB "open" is a heuristic. Open-data extracts can lag city systems and may be incomplete; confirm with DOB, HPD and OATH.
 
-(The server returned an HPD coverage note instead of a bare `0`, which is why the assistant did not call the building compliant.)
+**2.** *"Does 350 5th Ave, Manhattan have any open DOB violations?"*
+
+> Probably not. 350 5th Ave (the Empire State Building, BIN 1015862) shows 7 DOB records marked "ACTIVE", but all 7 are old elevator violations from 1988-2010. Every one carries a disposition note saying it was deleted. The reasons given include wrong address, entered in error and incorrect date. The 1988 record actually belongs to 34 Fletcher St.
+>
+> The "open" status is a heuristic based on the record's category, so these are most likely stale entries and not outstanding violations. The data can also lag the city's systems. To be certain, check DOB's BIS/DOB NOW portal. This lookup covered DOB only, not ECB or HPD.
+
+(In both answers the assistant used the summary's `footprint` / `other_bins_on_lot` and `data_quality_notes`; before the fix pass, conversation 1
+reported lot-wide HPD counts as if they belonged to one building.)
 
 ## Data sources
 

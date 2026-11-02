@@ -1,11 +1,10 @@
-**1 Stuyvesant Oval (Stuyvesant Town), BIN 1082881, BBL 1009720001**
+**1 Stuyvesant Oval (BIN 1082881, BBL 1009720001)** has one open violation across the three agencies.
 
-- **HPD:** 15 open and 611 closed. The latest were issued 2026-10-02. They are mostly plaster and paint repairs (§ 27-2005). One open item from 2025-12-31 says apartments were vacated by HPD and can't be reoccupied until HPD orders it.
-- **DOB:** 0 open and 33 closed. The latest was issued 2020-04-07.
-- **ECB:** 0 open and 1 closed, from 2002.
+- **HPD:** 1 open, 62 closed. The open one is violation 17193699, issued 2024-08-15, for mold over 10 sq ft that needs its source traced and repaired. The most recent HPD issue date is 2025-12-19.
+- **DOB:** 0 open, 33 closed. The latest was issued 2020-04-07.
+- **ECB:** 0 open, 1 closed, from 2002.
 
-**Caveats:**
-- Open-data extracts can lag official city systems and may be incomplete.
-- DOB "open" status is a heuristic: a record counts as open only if "ACTIVE" appears in its category.
-- This summary lists only the 5 most recent open items. I didn't pull the full HPD list, so I can't give the severity classes (A/B/C) of the open items.
-- This is not legal advice. Confirm with DOB, HPD and OATH.
+**Caveats**
+- The counts cover only this BIN. The lot holds about 34 other buildings, and their violations are not included.
+- DOB "open" is a heuristic: a record counts as open if "ACTIVE" appears in its category.
+- Open-data extracts can lag city systems and may be incomplete. Confirm with DOB, HPD and OATH before relying on this.
