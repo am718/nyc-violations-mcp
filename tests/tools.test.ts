@@ -472,3 +472,47 @@ describe("minor findings: Retry-After and app token handling", () => {
     expect(g.calls[0]!.headers["X-App-Token"]).toBeUndefined();
   });
 });
+
+describe("fix 5: tool design", () => {
+  async function listTools(fetchImpl = fixtureFetch()) {
+    const server = createServer(makeResolver(fetchImpl));
+    const [a, b] = InMemoryTransport.createLinkedPair();
+    const client = new Client({ name: "t", version: "0" });
+    await Promise.all([server.connect(a), client.connect(b)]);
+    return { client, tools: (await client.listTools()).tools };
+  }
+  it("DOB and ECB descriptions tell the agent to call resolve_property first when it has only an address or is unsure of the BIN", async () => {
+    const { tools } = await listTools();
+    for (const n of ["get_dob_violations", "get_ecb_violations"]) {
+      const d = tools.find((t) => t.name === n)!.description!;
+      expect(d, n).toMatch(/Requires a BIN/);
+      expect(d, n).toMatch(/only have an address, or are unsure of the BIN, call resolve_property first/);
+    }
+  });
+  it("HPD publishes 'bbl or bin' as anyOf/required in an object schema, and a missing pair gives a clear error", async () => {
+    const { client, tools } = await listTools();
+    const schema = tools.find((t) => t.name === "get_hpd_violations")!.inputSchema as Record<string, unknown>;
+    expect(schema.type).toBe("object");
+    expect(schema.anyOf).toEqual([{ required: ["bbl"] }, { required: ["bin"] }]);
+    expect((schema.properties as Record<string, unknown>).status).toMatchObject({ enum: ["open", "closed"] });
+    const res = await client.callTool({ name: "get_hpd_violations", arguments: { limit: 5 } });
+    expect(res.isError).toBe(true);
+    const msg = (res.content as { text: string }[])[0]!.text;
+    expect(msg).toMatch(/Provide bbl \(e\.g\. "2046540021"\) or bin/);
+    expect(msg).toMatch(/resolve_property/);
+  });
+  it("status keeps its enum in the published schema of every tool while accepting any letter case", async () => {
+    const { client, tools } = await listTools(stubFetch([[{ n: "0" }], [{ n: "0" }], []]));
+    for (const n of ["get_dob_violations", "get_ecb_violations", "get_hpd_violations"]) {
+      const st = (tools.find((t) => t.name === n)!.inputSchema.properties as Record<string, unknown>).status;
+      expect(st, n).toMatchObject({ type: "string", enum: ["open", "closed"] });
+    }
+    const ok = await client.callTool({ name: "get_hpd_violations", arguments: { bin: "1082881", status: "OPEN", limit: 2 } });
+    expect(ok.isError).toBeFalsy();
+  });
+  it("limit is published as an integer 1-100", async () => {
+    const { tools } = await listTools();
+    const lim = (tools.find((t) => t.name === "get_dob_violations")!.inputSchema.properties as Record<string, unknown>).limit;
+    expect(lim).toMatchObject({ type: "integer", minimum: 1, maximum: 100 });
+  });
+});

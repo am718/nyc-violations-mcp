@@ -1,4 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 
 import { LIMITS } from "./config.js";
 import { ToolError } from "./errors.js";
@@ -49,7 +50,8 @@ export function createServer(r: Resolver): McpServer {
     {
       title: "DOB violations for a building",
       description:
-        "List NYC Department of Buildings (DOB) violations for one building by BIN, newest first. Use for the DOB record of a specific " +
+        "List NYC Department of Buildings (DOB) violations for one building by BIN, newest first. Requires a BIN: if you only have an address, " +
+        "or are unsure of the BIN, call resolve_property first. Use for the DOB record of a specific " +
         "building (elevator, construction, work without permit, etc.). Not for ECB penalties/hearings (use get_ecb_violations), " +
         "residential housing-maintenance violations (use get_hpd_violations), or an overview (use building_compliance_summary). " +
         'Open/closed is a heuristic: open means "ACTIVE" appears in the record\'s category, and some "open" records are annotated as deleted (flagged per record).' +
@@ -66,7 +68,8 @@ export function createServer(r: Resolver): McpServer {
       title: "ECB violations for a building",
       description:
         "List DOB ECB (Environmental Control Board / OATH) violations for one building by BIN, newest first, including severity, " +
-        "hearing status and penalty balance. Use when the question is about penalties, hearings or amounts owed. Not for DOB " +
+        "hearing status and penalty balance. Requires a BIN: if you only have an address, or are unsure of the BIN, call resolve_property first. " +
+        "Use when the question is about penalties, hearings or amounts owed. Not for DOB " +
         "violation records themselves (use get_dob_violations) or HPD housing violations (use get_hpd_violations). ACTIVE records with hearing status WRITTEN OFF are flagged per record." +
         " Responses are capped at ~12,000 characters, so a large limit can return fewer records (see `truncated`); recency lists contain dated records only (see `undated_excluded`).",
       inputSchema: { bin: binSchema, status: statusSchema, limit },
@@ -85,7 +88,13 @@ export function createServer(r: Resolver): McpServer {
         "commercial building means no coverage expected, not compliance. Not for DOB or ECB records. If you pass both bin and bbl " +
         "they must refer to the same property. A bbl covers the whole tax lot (possibly many buildings); a bin covers one building." +
         " Responses are capped at ~12,000 characters, so a large limit can return fewer records (see `truncated`); recency lists contain dated records only (see `undated_excluded`).",
-      inputSchema: { bbl: bblSchema.optional(), bin: binSchema.optional(), status: statusSchema, limit },
+      // Published as an object with anyOf [{required:[bbl]},{required:[bin]}] (the closest the SDK allows to "one of"), plus a clear runtime error.
+      inputSchema: z
+        .object({ bbl: bblSchema.optional(), bin: binSchema.optional(), status: statusSchema, limit })
+        .meta({ anyOf: [{ required: ["bbl"] }, { required: ["bin"] }] })
+        .refine((v) => v.bbl !== undefined || v.bin !== undefined, {
+          error: 'Provide bbl (e.g. "2046540021") or bin (e.g. "2099579"), or both if they are the same property. Use resolve_property first if you only have an address.',
+        }),
       annotations: READ_ONLY,
     },
     (a) =>
