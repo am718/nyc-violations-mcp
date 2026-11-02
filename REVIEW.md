@@ -10,13 +10,13 @@ A TypeScript MCP server (official `@modelcontextprotocol/sdk`, stdio, zod valida
 It queries three NYC Open Data Socrata datasets (DOB `3h2n-5cm9`, ECB `6bgk-3dad`, HPD `wvxf-dwi5`) and uses NYC Planning Labs
 GeoSearch for address -> BIN/BBL. It has a SQLite TTL cache, 1 req/sec limiter, retry with backoff, request timeout, a
 response-size cap, a single place for per-dataset status mapping and for date normalization, coverage notes instead of bare
-zeros for HPD, 46 offline vitest tests with recorded fixtures, inspector scripts, a 10-building validation, README and docs.
+zeros for HPD, 64 offline vitest tests with recorded fixtures, inspector scripts, a 10-building validation, README and docs.
 
 ## 2. How to run
 
 ```bash
 npm install && npm run build
-npm test                           # 46 tests, offline; tests/setup-no-network.ts makes any global fetch throw
+npm test                           # 64 tests, offline; tests/setup-no-network.ts makes any global fetch throw
 bash scripts/inspect.sh            # Inspector web UI
 bash scripts/inspect.sh --cli --method tools/list
 bash scripts/inspector-check.sh    # all 5 tools via Inspector CLI, LIVE network, writes docs/evidence/inspector-*.json
@@ -79,14 +79,14 @@ returned as data, and accompanied by the notice. There is no sanitization of ins
 
 ## 5. Known weaknesses
 
-1. **DOB open/closed is a heuristic and overstates open items.** At the Empire State Building all 7 "open" DOB records are annotated as deleted. The tool flags them but still counts them as open.
-2. ECB "open" includes `WRITTEN OFF` hearing status; HPD/ECB mapping is otherwise literal.
-3. Multi-building lots: summary uses DOB/ECB by BIN but HPD by BBL (lot-wide), so the agencies are not strictly the same footprint. `other_bins_on_lot` is only a note.
+1. **DOB open/closed is a heuristic and overstates open items.** The raw `open` count still includes records annotated `DELETED`; the summary now adds `open_excluding_deleted` and `data_quality_notes`, but both are heuristics (other annotations, e.g. "BARAMIS OVERNIGHT RUN", are not excluded). (Fix 3)
+2. ECB raw `open` includes `WRITTEN OFF`; `open_excluding_written_off` is reported as a second count. HPD/ECB mapping is otherwise literal. (Fix 3)
+3. Multi-building lots: the summary now counts all three agencies by one BIN and reports `footprint` + an approximate `other_bins_on_lot` (max distinct BINs seen in DOB/HPD, minus 1), so it can undercount buildings with no records in either dataset. A lot like Stuyvesant Town is still only covered one building at a time. (Fix 1)
 4. BIN/BBL-only resolution depends on that property having DOB or HPD rows; otherwise the user is told to use the address.
 5. The BIN/BBL "agree" check relies on DOB lot data (and HPD); it does not consult an authoritative PAD source.
 6. GeoSearch match quality: confidence is reported (0.8 for the Empire State Building) but low-confidence matches are not rejected.
 7. Rate limiter is per-process; two server instances can exceed 1 req/sec in aggregate. Worst-case latency with retries is long (3 attempts x 15 s per request).
-8. Fixture lookup is keyed by exact request URL: changing the query builder requires re-recording (`record-fixtures`). The recorded fixtures include ECB respondent names (public data).
+8. Fixture lookup is keyed by exact request URL: changing the query builder requires re-recording (`record-fixtures`). Fixtures are re-recorded from live APIs; ECB `respondent_*` fields are redacted at record time (free-text descriptions are not). The ORIGINAL 6 commits still contain unredacted fixtures until the history rewrite is done.
 9. `src/index.ts` (cache fallback, wiring) is not unit tested; exercised only by Inspector/Claude Code runs.
 10. SDK validation errors for bad input arrive as MCP error -32602 text ("... at bin"), not as the server's own wording; the zod messages are included.
 11. `status` filter lists exclude `unknown`-status rows (counts in the summary include an `unknown` bucket when present).
@@ -98,8 +98,30 @@ returned as data, and accompanied by the notice. There is no sanitization of ins
 
 - Claude Desktop test; `claude mcp add` persistent install test; Inspector web UI session (CLI only).
 - Visual comparison against the Open Data web UI and official city systems (manual steps are in `docs/VALIDATION.md`).
-- App-token path untested; no test for HTTP header behavior.
+- App-token path never run with a real token (header behavior is unit tested with a fake token).
+- Git history rewrite (author email, scrub of old fixtures) is BLOCKED pending the GitHub noreply address.
 - HPD list pagination beyond `limit` (max 100) is not offered (by design: summaries first), so full histories are not retrievable.
 - Dataset `rowsUpdatedAt` is recorded in DATA.md as of 2026-11-01 only; no freshness check at runtime.
+
+## 7. Fixes (second pass, responding to REVIEW_REPORT.md; REVIEW_REPORT.md is unchanged)
+
+Commits are listed oldest to newest. Hashes are for the history as of this pass; **they will change if the history is rewritten.**
+
+| Finding (REVIEW_REPORT.md) | Status | Commit | What changed / evidence |
+|---|---|---|---|
+| M1 summary mixes BIN and lot footprints; README:155 false | Fixed | `77bc280` Fix 1 | DOB, ECB, HPD all by the resolved BIN; `footprint` + `other_bins_on_lot` always returned; README corrected. Tests "fix 1: consistent footprint" with a recorded Stuyvesant Town lot |
+| M2 HPD "newest first" wrong (NULLs first) | Fixed | `21f9999` Fix 2 | Verified live: NULLs sort first on DESC, `NULLS LAST` accepted but not relied on. Recency queries filter to dated rows; `undated_excluded` reported. Same check applied to DOB/ECB: junk text dates (e.g. `Y30819`) sorted above real ones, now filtered. Tests "fix 2" (live fixtures + synthetic junk) |
+| M3 "open" counts mislead; warnings buried | Fixed (heuristic, documented) | `aabf1ad` Fix 3 | Raw `open` kept; added DOB `open_excluding_deleted` and ECB `open_excluding_written_off`; `data_quality_notes` is the first key of the summary; flagged items marked, not reclassified. docs/DATA.md and README document the rule. Tests "fix 3" (Empire State 7 raw / 0 excluding; Grand Central ECB) |
+| m1 `limit` max 100 vs size cap | Fixed (documented) | `39d128f` Fix 4 | Tool descriptions and README state the ~12,000-char cap and `truncated`. Also fixed in `aabf1ad`: the cap was exceeded by ~160 chars because truncation fields were added after measuring |
+| m2 fixtures hold respondent names; personal author email | Fixtures: fixed in new commits. History/author: BLOCKED | `77bc280` (redaction at record time) | Old commits still contain unredacted fixtures and the personal author address; rewrite needs the GitHub noreply address (asked). `LICENSE` also names the user: left for the user to decide |
+| m3 untrusted-text notice placement | Fixed | `aabf1ad`, `39d128f` | `notice` and `untrusted_text_fields` precede the data in every response; docs note that record text also drives classification |
+| m4 case-sensitive status enum | Deliberately not fixed | n/a | A case-insensitive pre-process would erase the `enum` from the JSON schema that agents read; the error message already says exactly what to send |
+| m5 loose coercion (arrays accepted; unknown keys ignored) | Deliberately not fixed | n/a | Harmless (verified the emitted query is unchanged); the SDK builds a non-strict object from the shape, and rejecting arrays would also require dropping the clean JSON schema |
+| m6 Retry-After ignored; per-process limiter; no token test; index.ts untested | Partly fixed | `39d128f` | Retry-After honored (capped at 10 s) and tested; X-App-Token header unit test (fake token). Not fixed: per-process limiter (documented), `src/index.ts` wiring untested (listed above), worst-case latency (documented) |
+| m7 summary performance | Mitigated | `39d128f` | Summary now ~11-12 requests (~12 s cold); tool description says results are cached for an hour and not to call repeatedly |
+
+Re-verification after the fixes: `npm test` (64 passing, no-network guard on), `scripts/inspector-check.sh` (all 5 tools, evidence refreshed), `npm run validate`
+(10 of 10 buildings match independent direct queries, by BIN; `docs/VALIDATION.md` regenerated; web-UI comparison still UNVERIFIED), example conversations regenerated
+with the fixed server (`docs/evidence/conversation-*.txt`).
 
 Checklist status: see the final message in the session; this file is the evidence index.

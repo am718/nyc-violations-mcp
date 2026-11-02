@@ -101,8 +101,8 @@ Both were run with Claude Code against the live server on 2026-11-02 after the f
 >
 > The "open" status is a heuristic based on the record's category, so these are most likely stale entries and not outstanding violations. The data can also lag the city's systems. To be certain, check DOB's BIS/DOB NOW portal. This lookup covered DOB only, not ECB or HPD.
 
-(In both answers the assistant used the summary's `footprint` / `other_bins_on_lot` and `data_quality_notes`; before the fix pass, conversation 1
-reported lot-wide HPD counts as if they belonged to one building.)
+(Before the fix pass, conversation 1 reported lot-wide HPD counts as if they belonged to one building; the summary now counts one BIN and says how many
+other buildings share the lot.)
 
 ## Data sources
 
