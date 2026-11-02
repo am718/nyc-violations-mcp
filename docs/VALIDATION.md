@@ -2,60 +2,60 @@
 
 ## What was actually compared (read this first)
 
-For 10 well-known buildings, `building_compliance_summary` was run live through the real tool code
-(`npm run validate`, script: `scripts/validate.ts`). Its per-agency counts were then recounted with **plain Socrata
-queries written independently of the server's query builder** (simple `field=value` filters + `count(*)`).
+For 10 well-known buildings, `building_compliance_summary` was run live through the real tool code (`npm run validate`,
+`scripts/validate.ts`). Its numbers were then recounted with **plain Socrata queries written independently of the server's
+query builder** (simple `field=value` filters, `count(*)`, `count(distinct bin)`). All three datasets are compared **by BIN**
+(the same footprint the tool now uses), including:
 
-**Limitation, stated plainly:** the Open Data web UI (data.cityofnewyork.us dataset pages) is a JavaScript app that I
-could not drive from this environment, and it reads from the same Socrata backend as the API. So this is an
-API-to-API cross-check, **not** a visual comparison against the web UI. The UI comparison is **UNVERIFIED**;
-the manual steps to do it are at the bottom. It also does not validate against DOB BIS / DOB NOW / HPD Online
-(see "Official systems" below).
+- raw DOB / ECB / HPD open and total counts,
+- the second counts excluding annotated records (DOB `DELETED`, ECB `WRITTEN OFF`),
+- `other_bins_on_lot` (approximate: max of distinct BINs seen on the lot in DOB and HPD, minus 1).
 
-Format of each cell: `open/total`. A cell shows `tool / **independent**` only when they differ.
-For HPD, "none (coverage note)" means the tool returned null counts plus the coverage note, and the
-independent recount also found 0 rows.
+**Limitation, stated plainly:** the Open Data web UI (data.cityofnewyork.us dataset pages) is a JavaScript app that could not be
+driven from this environment, and it reads from the same Socrata backend as the API. So this is an API-to-API cross-check, **not**
+a comparison against the web UI. **The web-UI comparison is UNVERIFIED** (manual steps at the bottom). It also does not validate
+against DOB BIS / DOB NOW / HPD Online / OATH, and it cannot detect problems in the upstream data.
 
-## Results (Run at 2026-11-01T22:02:33.974Z)
+## Results (Run at 2026-11-02T01:14:05.826Z)
 
-| Address | BIN | BBL | DOB open/total (tool / independent) | ECB open/total | HPD open/total | Result |
+Cell format `open/total`; `tool / **independent**` is shown only where they differ (none did). "excl. deleted" and "excl. written off"
+are the second open counts (open minus annotated records); they are heuristics, not reclassifications.
+
+| Address | BIN | DOB open/total (tool / independent) | ECB open/total | HPD open/total (by BIN) | other_bins_on_lot | Result |
 |---|---|---|---|---|---|---|
-| 350 5th Ave, Manhattan | 1015862 | 1008350041 | 7/691 | 0/241 | none (coverage note) | match |
-| 175 5th Ave, Manhattan | 1016278 | 1008510001 | 5/131 | 0/96 | none (coverage note) | match |
-| 405 Lexington Ave, Manhattan | 1036156 | 1012970023 | 2/469 | 0/53 | none (coverage note) | match |
-| 285 Fulton St, Manhattan | 1088469 | 1000580001 | 1/1 | 1/1 | none (coverage note) | match |
-| 89 E 42nd St, Manhattan | 1035381 | 1012800001 | 154/157 | 6/26 | none (coverage note) | match |
-| 233 Broadway, Manhattan | 1087167 | 1001237501 | 11/244 | 1/66 | none (coverage note) | match |
-| 1 W 72nd St, Manhattan | 1028637 | 1011250025 | 1/109 | 0/10 | 0/1 | match |
-| 209 Joralemon St, Brooklyn | 3000256 | 3001390001 | 6/54 | 1/3 | none (coverage note) | match |
-| 1 E 161st St, Bronx | 2114490 | 2024930001 | 8/123 | 0/29 | none (coverage note) | match |
-| 1 Stuyvesant Oval, Manhattan | 1082881 | 1009720001 | 0/33 | 0/1 | 15/626 | match |
+| 350 5th Ave, Manhattan | 1015862 | 7/691 (excl. deleted 0) | 0/241 (excl. written off 0) | none (coverage note) | 0 (DOB bins on lot 1; HPD bins 0) | match |
+| 175 5th Ave, Manhattan | 1016278 | 5/131 (excl. deleted 5) | 0/96 (excl. written off 0) | none (coverage note) | 0 (DOB bins on lot 1; HPD bins 0) | match |
+| 405 Lexington Ave, Manhattan | 1036156 | 2/469 (excl. deleted 1) | 0/53 (excl. written off 0) | none (coverage note) | 0 (DOB bins on lot 1; HPD bins 0) | match |
+| 285 Fulton St, Manhattan | 1088469 | 1/1 (excl. deleted 1) | 1/1 (excl. written off 1) | none (coverage note) | 3 (DOB bins on lot 4; HPD bins 0) | match |
+| 89 E 42nd St, Manhattan | 1035381 | 154/157 (excl. deleted 154) | 6/26 (excl. written off 0) | none (coverage note) | 0 (DOB bins on lot 1; HPD bins 0) | match |
+| 233 Broadway, Manhattan | 1087167 | 11/244 (excl. deleted 4) | 1/66 (excl. written off 1) | none (coverage note) | 0 (DOB bins on lot 1; HPD bins 0) | match |
+| 1 W 72nd St, Manhattan | 1028637 | 1/109 (excl. deleted 0) | 0/10 (excl. written off 0) | 0/1 | 1 (DOB bins on lot 2; HPD bins 1) | match |
+| 209 Joralemon St, Brooklyn | 3000256 | 6/54 (excl. deleted 5) | 1/3 (excl. written off 1) | none (coverage note) | 0 (DOB bins on lot 1; HPD bins 0) | match |
+| 1 E 161st St, Bronx | 2114490 | 8/123 (excl. deleted 8) | 0/29 (excl. written off 0) | none (coverage note) | 0 (DOB bins on lot 1; HPD bins 0) | match |
+| 1 Stuyvesant Oval, Manhattan | 1082881 | 0/33 (excl. deleted 0) | 0/1 (excl. written off 0) | 1/63 | 34 (DOB bins on lot 35; HPD bins 35) | match |
 
-All rows match: true
+All 10 buildings matched on every check (10 of 10). The previous validation (before the fix pass) compared HPD by whole lot; this
+run compares HPD by BIN, which is what the tool now returns.
 
 ## Notes on the results
 
-- Counts match for all 10 buildings, so the tool's aggregation, status mapping and BIN/BBL handling agree with a
-  direct query of the same data. Because both paths use the same dataset, this cannot detect problems in the data itself.
-- Commercial/civic buildings (Empire State, Flatiron, Chrysler, One WTC, Grand Central, Woolworth, Borough Hall,
-  Yankee Stadium) have no HPD rows, as expected: the tool says "no HPD coverage expected or none found" rather than 0.
-  The Dakota has a single closed HPD record. Stuyvesant Town (residential) has 626 HPD records, 15 open.
-- DOB "open" is the `ACTIVE`-in-`violation_category` heuristic. Many "open" DOB records are old and carry
-  disposition notes such as "DELETED BY ... BECAUSE DUPLICATE" (all 7 "open" records at the Empire State Building do).
-  The tool flags these (`open_with_disposition_notes`, per-item `caveat`). So **do not read the DOB open count as the
-  number of genuinely outstanding violations**; compare with DOB's own system before relying on it.
-- Address matching used GeoSearch; every address resolved to a BIN/BBL on the first try, but only the match
-  *confidence/type* is reported, not manually checked for all 10. BINs were spot-checked as plausible
-  (e.g., Empire State = 1015862) but not verified against another source.
+- Commercial/civic buildings have no HPD rows: the tool says "no HPD coverage expected or none found" rather than 0.
+- Stuyvesant Town: the summary covers BIN 1082881 only (DOB 33 records, HPD 63 records) and reports `other_bins_on_lot: 34`; the whole lot has
+  35 BINs and 626 HPD records. One WTC's lot has 3 other BINs; The Dakota's lot has 1.
+- Annotated "open" DOB records vary a lot: all 7 at the Empire State Building are `DELETED` (0 left), while Grand Central's 154
+  "open" DOB records have none flagged. The flagged counts are a heuristic, not a verdict; verify in DOB's own system.
+- ECB "open" at Grand Central (6) is all `WRITTEN OFF`; at One WTC, Woolworth and Borough Hall the 1 open ECB record is not written off.
+- Addresses resolved on the first try with GeoSearch confidence 0.8 (`match_type: fallback`) for the three checked by hand;
+  BINs were not verified against another authoritative source.
 
 ## Official systems (not compared)
 
 Open data lags DOB BIS/DOB NOW, HPD Online and OATH. No comparison to those systems was made. UNVERIFIED.
 
-## How to do the UI comparison manually
+## How to do the web-UI comparison manually
 
 1. Open `https://data.cityofnewyork.us/d/3h2n-5cm9` (DOB Violations), add a filter `BIN = <bin>`, note the row count.
-   Repeat for ECB (`6bgk-3dad`, filter `BIN`) and HPD (`wvxf-dwi5`, filter `BBL`).
-2. Add a second filter for status (DOB: Violation Category contains ACTIVE; ECB: ECB Violation Status = ACTIVE;
-   HPD: Violation Status = Open) and compare with the table above.
-3. Raw API links for any building: `https://data.cityofnewyork.us/resource/3h2n-5cm9.json?bin=<bin>&$select=count(*)`.
+   Repeat for ECB (`6bgk-3dad`, filter `BIN`) and HPD (`wvxf-dwi5`, filter `BIN`).
+2. Add a status filter (DOB: Violation Category contains ACTIVE; ECB: ECB Violation Status = ACTIVE; HPD: Violation Status = Open)
+   and compare with the table above.
+3. Raw API links: `https://data.cityofnewyork.us/resource/3h2n-5cm9.json?bin=<bin>&$select=count(*)`.
