@@ -13,7 +13,7 @@ query builder** (simple `field=value` filters, `count(*)`, `count(distinct bin)`
 
 **Limitation, stated plainly:** the Open Data web UI (data.cityofnewyork.us dataset pages) is a JavaScript app that could not be
 driven from this environment, and it reads from the same Socrata backend as the API. So this is an API-to-API cross-check, **not**
-a comparison against the web UI. **The web-UI comparison is UNVERIFIED** (manual steps at the bottom). It also does not validate
+a comparison against the web UI. **This tool's own validation is API-to-API; the web-UI check was done separately by an independent pass and is described below** (manual steps at the bottom). It also does not validate
 against DOB BIS / DOB NOW / HPD Online / OATH, and it cannot detect problems in the upstream data.
 
 ## Results (Run at 2026-11-02T01:14:05.826Z)
@@ -47,6 +47,15 @@ run compares HPD by BIN, which is what the tool now returns.
 - ECB "open" at Grand Central (6) is all `WRITTEN OFF`; at One WTC, Woolworth and Borough Hall the 1 open ECB record is not written off.
 - Addresses resolved on the first try with GeoSearch confidence 0.8 (`match_type: fallback`) for the three checked by hand;
   BINs were not verified against another authoritative source.
+
+## Web-UI search and per-BIN totals (checked 2026-11-02 by an independent pass)
+
+The Open Data dataset pages have a search box on the data preview tab. That search is **full-text**, not a filter on the BIN column. If another
+record has the same digits in a different column (for example a record ID such as `isn_dob_bis_viol`, `isn_dob_bis_extract` or `violationid`
+equal to the BIN), the UI count can be **one higher** than a BIN-equality count. In a 10-search comparison on 5 buildings, 2 matched exactly
+and 8 were exactly +1 for that reason. The API's full-text parameter `$q=<digits>` returns exactly the UI's numbers in all 10 cases, and the
+`bin=` equality counts (what this tool uses) are the ones in the table above. So the UI and the API agree; the UI cannot isolate the BIN column.
+Open versus closed counts could not be checked in the UI this way.
 
 ## Official systems (not compared)
 

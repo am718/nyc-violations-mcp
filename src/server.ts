@@ -110,7 +110,7 @@ export function createServer(r: Resolver): McpServer {
       description:
         "Best first call for \"what is the violation situation at this property?\". Takes ONE of address, bin or bbl and returns open " +
         "vs closed counts per agency (DOB, ECB, HPD), the most recent issue date, the 5 most recent open items (one line each) and " +
-        "links to the source records. Makes several upstream requests, so it can take ~10 seconds on a cold cache. Use the " +
+        "links to the source records. Makes 13 upstream requests at 1 request per second, so a cold call takes at least about 12 seconds (measured 12-24 s). Use the " +
         "get_*_violations tools afterwards only if you need full details of one agency. Counts DOB, ECB and HPD for the one resolved BIN (see `footprint`); " +
         "read `data_quality_notes` first. Results are cached for an hour, so do not call it repeatedly for the same property.",
       inputSchema: { address: addressSchema.optional(), bin: binSchema.optional(), bbl: bblSchema.optional() },
