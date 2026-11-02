@@ -1,7 +1,7 @@
 import { GEOSEARCH_SOURCE_NAME, GEOSEARCH_URL, SOURCE_NAME, DATASETS } from "./config.js";
 import { ToolError } from "./errors.js";
 import type { HttpClient } from "./http.js";
-import { BOROUGHS, joinBbl } from "./ids.js";
+import { BOROUGHS, isPlaceholderBbl, isPlaceholderBin, isRealBin, joinBbl } from "./ids.js";
 import { cleanText, isRow } from "./normalize.js";
 import { queries, type SocrataClient } from "./socrata.js";
 import type { SourceRef } from "./format.js";
@@ -50,8 +50,14 @@ export async function resolveAddress(r: Resolver, address: string): Promise<Prop
   const pad = isRow(props.addendum) && isRow((props.addendum as Record<string, unknown>).pad)
     ? ((props.addendum as Record<string, unknown>).pad as Record<string, unknown>)
     : undefined;
-  const bin = typeof pad?.bin === "string" && /^[1-5]\d{6}$/.test(pad.bin) ? pad.bin : null;
-  const bbl = typeof pad?.bbl === "string" && /^[1-5]\d{9}$/.test(pad.bbl) ? pad.bbl : null;
+  if (typeof pad?.bin === "string" && isPlaceholderBin(pad.bin)) {
+    throw new ToolError(
+      `"${cleanText(address, 80)}" matched "${cleanText(props.label, 80)}", but the city lists no real building there (its BIN is a borough-level placeholder, ${pad.bin}). ` +
+        "Check the address, or pass a bbl if you know the tax lot.",
+    );
+  }
+  const bin = isRealBin(pad?.bin) ? pad.bin : null;
+  const bbl = typeof pad?.bbl === "string" && /^[1-5]\d{9}$/.test(pad.bbl) && !isPlaceholderBbl(pad.bbl) ? pad.bbl : null;
   if (!bin || !bbl) {
     throw new ToolError(
       `"${cleanText(address, 80)}" matched "${cleanText(props.label, 80)}" but not a specific building (no BIN/BBL). ` +
@@ -92,7 +98,7 @@ export async function resolveBin(r: Resolver, bin: string): Promise<Property> {
   }
   const hpd = await r.socrata.query(queries.hpdForBin(bin));
   const h = hpd.rows.find(isRow) as Record<string, unknown> | undefined;
-  const hb = typeof h?.bbl === "string" && /^[1-5]\d{9}$/.test(h.bbl) ? h.bbl : null;
+  const hb = typeof h?.bbl === "string" && /^[1-5]\d{9}$/.test(h.bbl) && !isPlaceholderBbl(h.bbl) ? h.bbl : null;
   if (h && hb) {
     return {
       address: fmt(h.housenumber, h.streetname),
@@ -101,6 +107,12 @@ export async function resolveBin(r: Resolver, bin: string): Promise<Property> {
       borough: BOROUGHS[bin[0]!] ?? null,
       sources: [ds("dob", dob.fetchedAt), ds("hpd", hpd.fetchedAt)],
     };
+  }
+  if (top) {
+    throw new ToolError(
+      `BIN ${bin} appears in DOB records, but only with an unknown block/lot (placeholder), so its BBL could not be derived. ` +
+        "The get_dob_violations and get_ecb_violations tools still work with this BIN; for a summary use the street address.",
+    );
   }
   throw new ToolError(
     `BIN ${bin} has no records in the DOB or HPD violation datasets, so its BBL could not be derived. ` +
@@ -121,14 +133,20 @@ export async function resolveBbl(r: Resolver, bbl: string): Promise<Property> {
     key = "housenumber";
     street = "streetname";
   }
-  const first = rows.find((x) => typeof x.bin === "string" && /^[1-5]\d{6}$/.test(x.bin));
+  const first = rows.find((x) => isRealBin(x.bin));
+  if (!first && rows.some((x) => typeof x.bin === "string" && isPlaceholderBin(x.bin))) {
+    throw new ToolError(
+      `BBL ${bbl} only appears in the data with a borough-level placeholder BIN (building unknown), so no real building could be identified. ` +
+        "Use resolve_property with the street address instead.",
+    );
+  }
   if (!first) {
     throw new ToolError(
       `BBL ${bbl} has no records in the DOB or HPD violation datasets, so its BIN could not be derived. ` +
         "Check the BBL, or call resolve_property with the street address instead.",
     );
   }
-  const bins = [...new Set(rows.map((x) => x.bin).filter((b): b is string => typeof b === "string" && /^[1-5]\d{6}$/.test(b)))];
+  const bins = [...new Set(rows.map((x) => x.bin).filter(isRealBin))];
   const primary = first.bin as string;
   return {
     address: fmt(first[key], first[street]),

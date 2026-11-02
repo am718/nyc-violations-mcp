@@ -88,6 +88,16 @@ become `null` (sorted last). HPD "issue date" = `novissueddate` (falls back to `
   out (`undated_excluded`, `open_undated_excluded_from_recent_list`). `total_matching` and the open/closed counts still include them.
 - `most_recent_issue_date` is `max()` over dated rows only.
 
+## Placeholder identifiers (rejected by every tool)
+- **BINs `X000000`** (`1000000`, `2000000`, `3000000`, `4000000`, `5000000`) mean "building unknown" in the borough. Thousands of unrelated
+  records share them (verified live 2026-11-01: BIN `1000000` has DOB 96, ECB 230, HPD 7,441 rows; `2000000` HPD 7,891; `3000000` HPD 12,148;
+  `5000000` HPD 829). The tools reject them and say to use the street address.
+- **BBLs with block `00000` or `99999`, or lot `0000`** are the matching placeholders (verified live 2026-11-02: DOB has 5,842 rows across
+  811 BINs with block 00000 and lot 00000; ECB 178 rows across 78 BINs; a handful of DOB rows have block 99999). They are rejected the same way.
+  A real BIN whose DOB records only carry an unknown block/lot cannot be turned into a BBL: `resolve_property` and the summary say so, while
+  `get_dob_violations` / `get_ecb_violations` still work with that BIN.
+- Also rejected when they come back from GeoSearch or from DOB/HPD rows, and the query builder refuses them as defense in depth.
+
 ## Untrusted text
 Descriptions, comments and category text come from public records. They are truncated, control-stripped and returned as data. They also feed classification (DOB category `ACTIVE`, comment `DELETED`, ECB hearing status), so a crafted record could change a record's open/closed bucket, but nothing in the server follows instructions found in text.
 

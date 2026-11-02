@@ -161,6 +161,7 @@ offline tests with recorded fixtures, and an explicit query-injection test.
 - BIN/BBL inputs are resolved through DOB/HPD rows, so a valid BIN with no violation records anywhere cannot be resolved (use the address).
 - GeoSearch matches can be low confidence; the confidence is reported.
 - The summary needs about 10-12 upstream requests (1 req/sec), roughly 12 seconds on a cold cache.
+- Borough placeholder identifiers (BINs `X000000`; BBLs with block 00000/99999 or lot 0000) are rejected with a message to use the address, because thousands of unrelated records share them.
 - Datasets or field names can change; `docs/DATA.md` records what was verified on 2026-11-01.
 - Recorded test fixtures are real NYC Open Data responses with ECB `respondent_*` fields replaced by placeholders (the free-text violation descriptions are unmodified public text).
 - Responses are capped at ~12,000 characters, so a large `limit` can return fewer records (see `truncated`); recency lists contain dated records only and report `undated_excluded`.

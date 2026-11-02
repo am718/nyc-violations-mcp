@@ -1,7 +1,7 @@
 import { DATASETS, SOCRATA_BASE, type DatasetKey } from "./config.js";
 import { ToolError } from "./errors.js";
 import type { HttpClient } from "./http.js";
-import { splitBbl } from "./ids.js";
+import { isPlaceholderBbl, isPlaceholderBin, splitBbl } from "./ids.js";
 import { FLAG_CLAUSE, STATUS_CLAUSE, STATUS_FIELD } from "./status.js";
 
 /**
@@ -39,13 +39,15 @@ export function buildUrl(q: SoqlQuery): string {
 
 export type Locator = { by: "bin"; bin: string } | { by: "bbl"; bbl: string };
 
-const BIN_RE = /^[1-5]\d{6}$/;
+const BIN_RE = /^[1-5](?!000000)\d{6}$/; // real buildings only; X000000 placeholders are refused (defense in depth)
 const BBL_RE = /^[1-5]\d{9}$/;
 
 /** WHERE clause locating a property inside a dataset. DOB/ECB have no bbl column: use boro+block+lot. */
 export function locatorClause(dataset: DatasetKey, loc: Locator): string {
+  if (loc.by === "bin" && isPlaceholderBin(loc.bin)) throw new ToolError("Internal safety check: refusing to query a borough-level placeholder BIN.");
   if (loc.by === "bin") return `bin = ${digits(loc.bin, BIN_RE)}`;
   digits(loc.bbl, BBL_RE);
+  if (isPlaceholderBbl(loc.bbl)) throw new ToolError("Internal safety check: refusing to query a placeholder BBL (block/lot unknown).");
   if (dataset === "hpd") return `bbl = ${digits(loc.bbl, BBL_RE)}`;
   const { boro, block, lot } = splitBbl(loc.bbl);
   // DOB/ECB lot is a 5-digit zero-padded text column (verified live), unlike the 4-digit lot in a BBL.
