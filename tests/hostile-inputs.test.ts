@@ -22,7 +22,7 @@ interface Case {
 
 // ---------- strict allowlist ----------
 const SOCRATA = /^https:\/\/data\.cityofnewyork\.us\/resource\/(3h2n-5cm9|6bgk-3dad|wvxf-dwi5)\.json\?/;
-const GEO = /^https:\/\/geosearch\.planninglabs\.nyc\/v2\/search\?text=[^&]*&size=1$/;
+const GEO = /^https:\/\/geosearch\.planninglabs\.nyc\/v2\/search\?text=[^&]*&size=10$/; // size = GEOSEARCH_CANDIDATES
 const LOC = [/^bin = '[1-5]\d{6}'$/, /^bbl = '[1-5]\d{9}'$/, /^boro = '[1-5]' AND block = '\d{5}' AND lot = '\d{5}'$/];
 const TEXT_DATE =
   "(issue_date between '18000101' and '22001231' AND issue_date like '________' AND substring(issue_date,5,2) between '01' and '12' AND substring(issue_date,7,2) between '01' and '31' AND NOT (substring(issue_date,5,2) = '02' AND substring(issue_date,7,2) > '29') AND NOT (substring(issue_date,5,2) in ('04','06','09','11') AND substring(issue_date,7,2) = '31'))";

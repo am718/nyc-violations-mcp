@@ -9,7 +9,7 @@ All from NYC Open Data (Socrata, `data.cityofnewyork.us`), queried at `/resource
 | DOB ECB Violations | `6bgk-3dad` | 2026-10-31 17:10 | `bin`, `boro`+`block`+`lot` (no `bbl` column) |
 | HPD Housing Maintenance Code Violations | `wvxf-dwi5` | 2026-11-01 15:53 | `bin`, `bbl`, `boroid` |
 
-Address resolution: NYC Planning Labs GeoSearch, `https://geosearch.planninglabs.nyc/v2/search?text=...`
+Address resolution: NYC Planning Labs GeoSearch, `https://geosearch.planninglabs.nyc/v2/search?text=...&size=10`
 (verified live; returns `properties.addendum.pad.bbl` and `.bin`, plus `borough`, `label`).
 Example: "350 5th Ave Manhattan" -> BIN 1015862, BBL 1008350041 (confidence 0.8, match_type fallback).
 
@@ -22,17 +22,41 @@ Match-quality fields present on each feature: `confidence`, `match_type`, `accur
 - right: "350 5th Ave, Manhattan", "1 Stuyvesant Oval, Manhattan", "37-02 Main St, Queens", ...
 - wrong: "123 Fake Street, Queens" -> 123 WEST 123 STREET (Manhattan); "Lot 1 Block 1, Manhattan" -> 1 LT HALLORAN STREET;
   "9999 5th Ave, Manhattan" -> house number 6; "5th Ave" (no number) -> a Queens building; "100 Queens Blvd, Queens" -> 30-100.
-- The only different values seen were `confidence: 1` / `match_type: exact` for a landmark *name* ("Empire State Building").
+- `confidence: 1` / `match_type: exact` is returned for names (layer `venue`), and it is no better: on 2026-11-03 "Queens" and
+  "Queens, NY" came back as an exact, confidence-1 match on a **Bronx** building named "QUEEN'S COURT" (the gate review's major
+  finding; the earlier matcher returned it as a success).
 - A wrong zip code in the input (11111) is ignored by GeoSearch (same building returned).
+- The first candidate is not always the only one: "Borough Hall" returns 4 exact matches in 4 boroughs, "350 Fifth Ave" (no
+  borough) ranks the Brooklyn building before the Empire State Building, "1 Main St" and "100 Broadway" exist in two boroughs.
 
 So 0.8 means "GeoSearch returned its best candidate", not "the address matched", and the score cannot be used as a quality gate.
-The tool therefore compares what the caller typed with what came back (`src/address.ts`): house number (must be equal, or both
-absent), street name (abbreviations, ordinals, directions and Saint/St normalized; every typed word must be found), borough
-(if the caller gave one) and zip (if the caller gave one). On any difference it returns an error showing the best candidate and its BIN,
-and does not return the building as a success. If no borough or zip was typed, the match carries a note naming the borough
-that was assumed. The check is deliberately strict: an unusual spelling the table does not know (e.g. a new abbreviation) produces
-an error that still shows the candidate, so the caller can confirm it by passing its BIN. The `< 0.8` low-confidence note is kept but
-has not been seen to fire.
+The tool therefore compares what the caller typed with what came back (`src/address.ts`), in this order:
+
+1. **Place-only input is refused before any request**: an input whose words are all borough names (exact or a small misspelling,
+   e.g. "Quens", "Brookyln", "Staten Iland"), city/state/county words ("New York", "NYC", "Kings County"), zip codes, optionally
+   after a house number ("50 Queens"). The error asks for a street address, a BIN or a BBL. The matcher applies the same rule
+   again for every candidate (second layer).
+2. **House number** must be equal, or absent on both sides.
+3. **Street**: split into its name (the "core") and its type (the last word, if it is a street-type word such as Street, Avenue,
+   Place, Court, Plaza; abbreviations spelled out). The core words must be **equal and in the same order** (ordinals,
+   directions, Saint/St and apostrophes normalized), and the types must agree: a missing or different type is a mismatch. A
+   street-type word therefore never matches anything by itself ("Queens" is not "QUEEN'S COURT"; "350 5th, Brooklyn" is not
+   "350 5 AVENUE"). Without a house number this means the typed name must equal the candidate's name exactly ("Empire State
+   Building" still resolves).
+4. **Borough** (if typed, misspellings allowed; two different boroughs typed is a mismatch) and **zip** (if typed) must agree.
+5. GeoSearch is asked for its **10 closest candidates** (`GEOSEARCH_CANDIDATES`). A building is returned only when exactly one
+   distinct BIN passes the checks above. If none passes, the error shows the closest candidate and its BIN; if more than one
+   passes (same address in two boroughs, "Borough Hall"), the error lists them with their BINs and none is used.
+
+If no borough or zip was typed and the match is unique, it carries a note naming its borough. The check is deliberately strict:
+an unusual spelling the table does not know produces an error that still shows the candidate, so the caller can confirm it by
+passing its BIN. The `< 0.8` low-confidence note is kept but has not been seen to fire.
+
+All 177 inputs tried on 2026-11-03 (borough/city/zip-only, borough words as street names, house-less, street-type-only,
+neighbourhoods, misspellings, case, punctuation, unicode, long strings, intersections, no-borough duplicates, landmarks, and the
+gate review's 25 bad and 12 correct inputs) are listed with their outcome and reason in [`ADDRESS_CASES.md`](ADDRESS_CASES.md); no
+wrong building came back as a success. Known limits: ambiguity is only seen among the 10 candidates GeoSearch returns, and a
+house-less input that exactly equals a building's name resolves to that building.
 
 ## Verified field names
 

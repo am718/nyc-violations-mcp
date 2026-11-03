@@ -1,0 +1,1172 @@
+[
+ {
+  "input": "Queens",
+  "category": "borough-only",
+  "outcome": "place-only",
+  "why": "names only a borough, city or zip code (refused before any request)"
+ },
+ {
+  "input": "Queens, NY",
+  "category": "borough-only",
+  "outcome": "place-only",
+  "why": "names only a borough, city or zip code (refused before any request)"
+ },
+ {
+  "input": "Bronx",
+  "category": "borough-only",
+  "outcome": "place-only",
+  "why": "names only a borough, city or zip code (refused before any request)"
+ },
+ {
+  "input": "Brooklyn",
+  "category": "borough-only",
+  "outcome": "place-only",
+  "why": "names only a borough, city or zip code (refused before any request)"
+ },
+ {
+  "input": "Manhattan",
+  "category": "borough-only",
+  "outcome": "place-only",
+  "why": "names only a borough, city or zip code (refused before any request)"
+ },
+ {
+  "input": "Staten Island",
+  "category": "borough-only",
+  "outcome": "place-only",
+  "why": "names only a borough, city or zip code (refused before any request)"
+ },
+ {
+  "input": "New York",
+  "category": "borough-only",
+  "outcome": "place-only",
+  "why": "names only a borough, city or zip code (refused before any request)"
+ },
+ {
+  "input": "Brooklyn, NY",
+  "category": "borough-only",
+  "outcome": "place-only",
+  "why": "names only a borough, city or zip code (refused before any request)"
+ },
+ {
+  "input": "Quens",
+  "category": "borough-misspelt",
+  "outcome": "place-only",
+  "why": "names only a borough, city or zip code (refused before any request)"
+ },
+ {
+  "input": "Brookyln",
+  "category": "borough-misspelt",
+  "outcome": "place-only",
+  "why": "names only a borough, city or zip code (refused before any request)"
+ },
+ {
+  "input": "Manhatan",
+  "category": "borough-misspelt",
+  "outcome": "place-only",
+  "why": "names only a borough, city or zip code (refused before any request)"
+ },
+ {
+  "input": "Staten Iland",
+  "category": "borough-misspelt",
+  "outcome": "place-only",
+  "why": "names only a borough, city or zip code (refused before any request)"
+ },
+ {
+  "input": "The Bronx",
+  "category": "borough-only",
+  "outcome": "place-only",
+  "why": "names only a borough, city or zip code (refused before any request)"
+ },
+ {
+  "input": "NYC",
+  "category": "city-only",
+  "outcome": "invalid-input",
+  "why": "address is too short."
+ },
+ {
+  "input": "NYC, NY",
+  "category": "city-only",
+  "outcome": "place-only",
+  "why": "names only a borough, city or zip code (refused before any request)"
+ },
+ {
+  "input": "New York City",
+  "category": "city-only",
+  "outcome": "place-only",
+  "why": "names only a borough, city or zip code (refused before any request)"
+ },
+ {
+  "input": "Kings County",
+  "category": "county-only",
+  "outcome": "place-only",
+  "why": "names only a borough, city or zip code (refused before any request)"
+ },
+ {
+  "input": "10001",
+  "category": "zip-only",
+  "outcome": "place-only",
+  "why": "names only a borough, city or zip code (refused before any request)"
+ },
+ {
+  "input": "NY 10118",
+  "category": "zip-only",
+  "outcome": "place-only",
+  "why": "names only a borough, city or zip code (refused before any request)"
+ },
+ {
+  "input": "50 Queens",
+  "category": "house+borough",
+  "outcome": "place-only",
+  "why": "names only a borough, city or zip code (refused before any request)"
+ },
+ {
+  "input": "Queen",
+  "category": "borough-misspelt",
+  "outcome": "place-only",
+  "why": "names only a borough, city or zip code (refused before any request)"
+ },
+ {
+  "input": "Bronx 10451",
+  "category": "borough+zip",
+  "outcome": "place-only",
+  "why": "names only a borough, city or zip code (refused before any request)"
+ },
+ {
+  "input": "11201",
+  "category": "zip-only",
+  "outcome": "place-only",
+  "why": "names only a borough, city or zip code (refused before any request)"
+ },
+ {
+  "input": "Queens Blvd",
+  "category": "borough-street",
+  "outcome": "mismatch",
+  "why": "no house number was given; closest candidate \"5817 QUEENS BOULEVARD, Woodside, NY, USA\" (Queens)"
+ },
+ {
+  "input": "100 Queens Blvd",
+  "category": "borough-street",
+  "outcome": "mismatch",
+  "why": "the house number differs; closest candidate \"30-100 QUEENS BOULEVARD, Rego Park, NY, USA\" (Queens)"
+ },
+ {
+  "input": "118-35 Queens Blvd, Queens",
+  "category": "borough-street",
+  "outcome": "success",
+  "bin": "4052811",
+  "matched": "118-35 QUEENS BOULEVARD, Forest Hills, NY, USA (Queens)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "Manhattan Ave, Brooklyn",
+  "category": "borough-street",
+  "outcome": "mismatch",
+  "why": "no house number was given; closest candidate \"1155 MANHATTAN AVENUE, Brooklyn, NY, USA\" (Brooklyn)"
+ },
+ {
+  "input": "150 Manhattan Ave, Brooklyn",
+  "category": "borough-street",
+  "outcome": "success",
+  "bin": "3071111",
+  "matched": "150 MANHATTAN AVENUE, Brooklyn, NY, USA (Brooklyn)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "Bronx River Ave",
+  "category": "borough-street",
+  "outcome": "mismatch",
+  "why": "no house number was given; the street name differs; closest candidate \"157 BRONX RIV AVENUE, Bronx, NY, USA\" (Bronx)"
+ },
+ {
+  "input": "Queens Plaza",
+  "category": "borough-street",
+  "outcome": "mismatch",
+  "why": "no house number was given; closest candidate \"2417 QUEENS PLAZA, Long Island City, NY, USA\" (Queens)"
+ },
+ {
+  "input": "2 Queens Plaza N, Queens",
+  "category": "borough-street",
+  "outcome": "mismatch",
+  "why": "the house number differs; closest candidate \"2415 QUEENS PLAZA NORTH, Long Island City, NY, USA\" (Queens)"
+ },
+ {
+  "input": "Joralemon St, Brooklyn",
+  "category": "houseless",
+  "outcome": "mismatch",
+  "why": "no house number was given; closest candidate \"221 JORALEMON STREET, Brooklyn, NY, USA\" (Brooklyn)"
+ },
+ {
+  "input": "Fifth Avenue",
+  "category": "houseless",
+  "outcome": "mismatch",
+  "why": "no house number was given; closest candidate \"887 FIFTH AVENUE, Brooklyn, NY, USA\" (Brooklyn)"
+ },
+ {
+  "input": "Wall Street",
+  "category": "houseless",
+  "outcome": "mismatch",
+  "why": "no house number was given; closest candidate \"5 WALL STREET, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "Rockefeller",
+  "category": "houseless",
+  "outcome": "mismatch",
+  "why": "the street name differs; closest candidate \"ROCKEFELLER U ROCKEFELLER BLDG, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "Rockefeller Plaza",
+  "category": "houseless",
+  "outcome": "mismatch",
+  "why": "no house number was given; closest candidate \"14 ROCKEFELLER PLAZA, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "Borough Hall",
+  "category": "houseless",
+  "outcome": "ambiguous",
+  "why": "matches 4 different places: \"BOROUGH HALL, Brooklyn, NY, USA\" (Brooklyn), bin \"3000256\"; \"BOROUGH HALL, Bronx, NY, USA\" (Bronx), bin \"2002869\"; \"BOROUGH HALL, Kew Gardens, NY, USA\" (Queens), bin \"4052812\"; \"BOROUGH HALL, Staten Island, NY, USA\" (Staten Island), bin \"5000063\""
+ },
+ {
+  "input": "Borough Hall, Brooklyn",
+  "category": "houseless",
+  "outcome": "success",
+  "bin": "3000256",
+  "matched": "BOROUGH HALL, Brooklyn, NY, USA (Brooklyn)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "City Hall",
+  "category": "houseless",
+  "outcome": "success",
+  "bin": "1079147",
+  "matched": "CITY HALL, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "Empire State Building",
+  "category": "landmark",
+  "outcome": "success",
+  "bin": "1015862",
+  "matched": "EMPIRE STATE BUILDING, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "empire state building, manhattan",
+  "category": "landmark",
+  "outcome": "success",
+  "bin": "1015862",
+  "matched": "EMPIRE STATE BUILDING, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "Grand Central Terminal",
+  "category": "landmark",
+  "outcome": "success",
+  "bin": "1035381",
+  "matched": "GRAND CENTRAL TERMINAL, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "Queens Museum",
+  "category": "houseless",
+  "outcome": "mismatch",
+  "why": "the street name differs; closest candidate \"FMCP QUEENS MUSEUM, Flushing Meadows, NY, USA\" (Queens)"
+ },
+ {
+  "input": "Times Square",
+  "category": "houseless",
+  "outcome": "placeholder",
+  "why": "matched \"TIMES SQUARE, New York, NY, USA\", but the city lists no real building there (its BIN is a borough-level placeholder, 1000000). Check the address, or pa"
+ },
+ {
+  "input": "100 Street",
+  "category": "type-only",
+  "outcome": "mismatch",
+  "why": "the house number differs; no street name was given; closest candidate \"327 100 STREET, Brooklyn, NY, USA\" (Brooklyn)"
+ },
+ {
+  "input": "Avenue, Manhattan",
+  "category": "type-only",
+  "outcome": "mismatch",
+  "why": "no house number was given; no street name was given; the borough differs; closest candidate \"213 HAMPTON AVENUE, Brooklyn, NY, USA\" (Brooklyn)"
+ },
+ {
+  "input": "1 Ave, Manhattan",
+  "category": "type-only",
+  "outcome": "mismatch",
+  "why": "no street name was given; closest candidate \"1 1 AVENUE, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "Court Street",
+  "category": "type-only",
+  "outcome": "mismatch",
+  "why": "no house number was given; closest candidate \"9 COURT STREET, Brooklyn, NY, USA\" (Brooklyn)"
+ },
+ {
+  "input": "Street, Brooklyn",
+  "category": "type-only",
+  "outcome": "mismatch",
+  "why": "no street name was given; closest candidate \"ST FRANCIS ST GEORGE RES HALL, Brooklyn, NY, USA\" (Brooklyn)"
+ },
+ {
+  "input": "100 Plaza",
+  "category": "type-only",
+  "outcome": "mismatch",
+  "why": "the house number differs; no street name was given; closest candidate \"1014 100 PLACE, Broad Channel, NY, USA\" (Queens)"
+ },
+ {
+  "input": "Harlem",
+  "category": "neighborhood",
+  "outcome": "mismatch",
+  "why": "the street name differs; closest candidate \"HARLEM MEER, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "SoHo",
+  "category": "neighborhood",
+  "outcome": "invalid-input",
+  "why": "address is too short."
+ },
+ {
+  "input": "SoHo, Manhattan",
+  "category": "neighborhood",
+  "outcome": "mismatch",
+  "why": "the street name differs; closest candidate \"TRUMP SOHO, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "Williamsburg, Brooklyn",
+  "category": "neighborhood",
+  "outcome": "mismatch",
+  "why": "the street name differs; closest candidate \"WILLIAMSBURG HOUSES, Brooklyn, NY, USA\" (Brooklyn)"
+ },
+ {
+  "input": "Astoria",
+  "category": "neighborhood",
+  "outcome": "mismatch",
+  "why": "the street name differs; closest candidate \"ASTORIA ENERGY, Astoria, NY, USA\" (Queens)"
+ },
+ {
+  "input": "Park Slope",
+  "category": "neighborhood",
+  "outcome": "mismatch",
+  "why": "the street name differs; closest candidate \"PARK SLOPE ARMORY, Brooklyn, NY, USA\" (Brooklyn)"
+ },
+ {
+  "input": "Upper West Side",
+  "category": "neighborhood",
+  "outcome": "mismatch",
+  "why": "the street name differs; closest candidate \"SUCCESS ACADEMY UPPER WEST ELEM, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "Flushing, Queens",
+  "category": "neighborhood",
+  "outcome": "mismatch",
+  "why": "the street name differs; closest candidate \"FLUSHING BAY, LaGuardia Airport District, NY, USA\" (Queens)"
+ },
+ {
+  "input": "Long Island City",
+  "category": "neighborhood",
+  "outcome": "mismatch",
+  "why": "the street name differs; closest candidate \"LONG ISLAND CITY HS, Long Island City, NY, USA\" (Queens)"
+ },
+ {
+  "input": "City Island",
+  "category": "neighborhood",
+  "outcome": "place-only",
+  "why": "names only a borough, city or zip code (refused before any request)"
+ },
+ {
+  "input": "350 Fith Ave, Manhattan",
+  "category": "misspelling",
+  "outcome": "mismatch",
+  "why": "the street name differs; closest candidate \"350 AMERICAS AVENUE, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "350 5th Avenu, Manhattan",
+  "category": "misspelling",
+  "outcome": "mismatch",
+  "why": "the street name differs; closest candidate \"350 5 AVENUE, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "209 Joralemon St, Brooklin",
+  "category": "misspelt-borough",
+  "outcome": "success",
+  "bin": "3000256",
+  "matched": "209 JORALEMON STREET, Brooklyn, NY, USA (Brooklyn)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "1 Wall St, Manhatan",
+  "category": "misspelt-borough",
+  "outcome": "success",
+  "bin": "1000815",
+  "matched": "1 WALL STREET, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "1 Wall St, Quens",
+  "category": "misspelt-borough",
+  "outcome": "mismatch",
+  "why": "the borough differs; closest candidate \"1 WALL STREET, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "11 Wal St, Manhattan",
+  "category": "misspelling",
+  "outcome": "mismatch",
+  "why": "the street name differs; the borough differs; closest candidate \"11 EXETER STREET, Brooklyn, NY, USA\" (Brooklyn)"
+ },
+ {
+  "input": "350 fIfTh AvEnUe, mAnHaTtAn",
+  "category": "case",
+  "outcome": "success",
+  "bin": "1015862",
+  "matched": "350 FIFTH AVENUE, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "350 5th Ave., Manhattan, N.Y.",
+  "category": "punct",
+  "outcome": "success",
+  "bin": "1015862",
+  "matched": "350 5 AVENUE, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "350 - 5th Ave, Manhattan",
+  "category": "punct",
+  "outcome": "mismatch",
+  "why": "the street name differs; closest candidate \"350 5 AVENUE, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "#350 5th Ave, Manhattan",
+  "category": "punct",
+  "outcome": "mismatch",
+  "why": "no house number was given; the street name differs; closest candidate \"6 5 AVENUE, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "350 5th Ave!!!, Manhattan???",
+  "category": "punct",
+  "outcome": "success",
+  "bin": "1015862",
+  "matched": "350 5 AVENUE, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "３５０ ５th Ave, Manhattan",
+  "category": "unicode",
+  "outcome": "success",
+  "bin": "1015862",
+  "matched": "350 5 AVENUE, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "350 5th Ave, Mänhattan",
+  "category": "unicode",
+  "outcome": "success",
+  "bin": "1015862",
+  "matched": "350 5 AVENUE, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "350​ 5th Ave, Manhattan",
+  "category": "unicode",
+  "outcome": "success",
+  "bin": "1015862",
+  "matched": "350 5 AVENUE, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "350 5th Ave, Manhattan ‮",
+  "category": "unicode",
+  "outcome": "success",
+  "bin": "1015862",
+  "matched": "350 5 AVENUE, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "帝国大厦 纽约",
+  "category": "unicode",
+  "outcome": "no-match",
+  "why": "No NYC address match for \"帝国大厦 纽约\". Use the form \"<house number> <street>, <borough>\", e.g. \"350 5th Ave, Manhattan\", or pass a bin/bbl instead."
+ },
+ {
+  "input": "350 5th Ave, Manhattan xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  "category": "long",
+  "outcome": "success",
+  "bin": "1015862",
+  "matched": "350 5 AVENUE, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "350 5th Ave Manhattan Manhattan Manhattan Manhattan Manhattan Manhattan Manhattan Manhattan Manhattan Manhattan Manhattan Manhattan Manhattan Manhattan Manhattan Manhattan Manhattan Manhattan ",
+  "category": "long",
+  "outcome": "mismatch",
+  "why": "the match has no house number; the street name differs; the borough differs; closest candidate \"MANHATTAN COLLEGE MANHATTAN HALL, Bronx, NY, USA\" (Bronx)"
+ },
+ {
+  "input": "Broadway & W 42nd St, Manhattan",
+  "category": "intersection",
+  "outcome": "no-match",
+  "why": "No NYC address match for \"Broadway & W 42nd St, Manhattan\". Use the form \"<house number> <street>, <borough>\", e.g. \"350 5th Ave, Manhattan\", or pass a bin/bbl "
+ },
+ {
+  "input": "5th Ave and 34th St, Manhattan",
+  "category": "intersection",
+  "outcome": "no-match",
+  "why": "No NYC address match for \"5th Ave and 34th St, Manhattan\". Use the form \"<house number> <street>, <borough>\", e.g. \"350 5th Ave, Manhattan\", or pass a bin/bbl i"
+ },
+ {
+  "input": "Fake St & Nowhere Ave, Queens",
+  "category": "intersection-fake",
+  "outcome": "no-match",
+  "why": "No NYC address match for \"Fake St & Nowhere Ave, Queens\". Use the form \"<house number> <street>, <borough>\", e.g. \"350 5th Ave, Manhattan\", or pass a bin/bbl in"
+ },
+ {
+  "input": "Houston St / Broadway",
+  "category": "intersection",
+  "outcome": "mismatch",
+  "why": "no house number was given; the street name differs; closest candidate \"39 HOUSTON STREET, Staten Island, NY, USA\" (Staten Island)"
+ },
+ {
+  "input": "350 Fifth Ave",
+  "category": "no-borough",
+  "outcome": "ambiguous",
+  "why": "matches 2 different places: \"350 FIFTH AVENUE, Brooklyn, NY, USA\" (Brooklyn), bin \"3021057\"; \"350 FIFTH AVENUE, New York, NY, USA\" (Manhattan), bin \"1015862\""
+ },
+ {
+  "input": "350 5th Ave",
+  "category": "no-borough",
+  "outcome": "ambiguous",
+  "why": "matches 2 different places: \"350 5 AVENUE, New York, NY, USA\" (Manhattan), bin \"1015862\"; \"350 5 AVENUE, Brooklyn, NY, USA\" (Brooklyn), bin \"3021057\""
+ },
+ {
+  "input": "1 Main St",
+  "category": "no-borough",
+  "outcome": "ambiguous",
+  "why": "matches 2 different places: \"1 MAIN STREET, Brooklyn, NY, USA\" (Brooklyn), bin \"3346104\"; \"1 MAIN STREET, New York, NY, USA\" (Manhattan), no real building (placeholder BIN)"
+ },
+ {
+  "input": "100 Broadway",
+  "category": "no-borough",
+  "outcome": "ambiguous",
+  "why": "matches 2 different places: \"100 BROADWAY, Brooklyn, NY, USA\" (Brooklyn), bin \"3324734\"; \"100 BROADWAY, New York, NY, USA\" (Manhattan), bin \"1001024\""
+ },
+ {
+  "input": "209 Joralemon St",
+  "category": "no-borough",
+  "outcome": "success",
+  "bin": "3000256",
+  "matched": "209 JORALEMON STREET, Brooklyn, NY, USA (Brooklyn)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "11 Wall St",
+  "category": "no-borough",
+  "outcome": "success",
+  "bin": "1078982",
+  "matched": "11 WALL STREET, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "1 72nd St, Manhattan",
+  "category": "direction",
+  "outcome": "mismatch",
+  "why": "the borough differs; closest candidate \"1 72 STREET, Brooklyn, NY, USA\" (Brooklyn)"
+ },
+ {
+  "input": "1 E 72nd St, Manhattan",
+  "category": "direction",
+  "outcome": "success",
+  "bin": "1041450",
+  "matched": "1 EAST 72 STREET, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "350 5th, Brooklyn",
+  "category": "type-missing",
+  "outcome": "mismatch",
+  "why": "no street type was given (the match is a avenue); closest candidate \"350 5 AVENUE, Brooklyn, NY, USA\" (Brooklyn)"
+ },
+ {
+  "input": "350 5th St, Manhattan",
+  "category": "type-mismatch",
+  "outcome": "mismatch",
+  "why": "the borough differs; closest candidate \"350 5 STREET, Brooklyn, NY, USA\" (Brooklyn)"
+ },
+ {
+  "input": "350 5th St, Brooklyn",
+  "category": "real",
+  "outcome": "success",
+  "bin": "3021392",
+  "matched": "350 5 STREET, Brooklyn, NY, USA (Brooklyn)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "350 5th Ave, Brooklyn",
+  "category": "real",
+  "outcome": "success",
+  "bin": "3021057",
+  "matched": "350 5 AVENUE, Brooklyn, NY, USA (Brooklyn)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "3702 Main St, Queens",
+  "category": "house-format",
+  "outcome": "success",
+  "bin": "4112290",
+  "matched": "3702 MAIN STREET, Flushing, NY, USA (Queens)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "37-02 Main St, Queens",
+  "category": "house-format",
+  "outcome": "success",
+  "bin": "4112290",
+  "matched": "37-02 MAIN STREET, Flushing, NY, USA (Queens)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "99999 Broadway, Manhattan",
+  "category": "fake-house",
+  "outcome": "mismatch",
+  "why": "the house number differs; the street name differs; closest candidate \"23 B'WAY, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "1 Nonexistentia Blvd, Brooklyn",
+  "category": "fake-street",
+  "outcome": "mismatch",
+  "why": "the street name differs; closest candidate \"1 GASTON BOULEVARD, Brooklyn, NY, USA\" (Brooklyn)"
+ },
+ {
+  "input": "123 Fake Street, Queens",
+  "category": "gate-review-bad",
+  "outcome": "mismatch",
+  "why": "the street name differs; the borough differs; closest candidate \"123 WEST 123 STREET, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "350 5th Ave, Bronx",
+  "category": "gate-review-bad",
+  "outcome": "mismatch",
+  "why": "the borough differs; closest candidate \"350 5 AVENUE, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "350 Fith Avenue, Manhattan",
+  "category": "gate-review-bad",
+  "outcome": "mismatch",
+  "why": "the street name differs; closest candidate \"350 AMERICAS AVENUE, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "350 Fifth Avnue, Manhattan",
+  "category": "gate-review-bad",
+  "outcome": "mismatch",
+  "why": "the street name differs; closest candidate \"350 FIFTH AVENUE, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "Broadway & 42nd St, Manhattan",
+  "category": "gate-review-bad",
+  "outcome": "mismatch",
+  "why": "no house number was given; the street name differs; the borough differs; closest candidate \"42 ST OF ARTS AND CULTURE, Brooklyn, NY, USA\" (Brooklyn)"
+ },
+ {
+  "input": "5th Ave and 34th St",
+  "category": "gate-review-bad",
+  "outcome": "no-match",
+  "why": "No NYC address match for \"5th Ave and 34th St\". Use the form \"<house number> <street>, <borough>\", e.g. \"350 5th Ave, Manhattan\", or pass a bin/bbl instead."
+ },
+ {
+  "input": "12345 Main St, Staten Island",
+  "category": "gate-review-bad",
+  "outcome": "mismatch",
+  "why": "the house number differs; the borough differs; closest candidate \"661 MAIN STREET, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "1 Wall St, Queens",
+  "category": "gate-review-bad",
+  "outcome": "mismatch",
+  "why": "the borough differs; closest candidate \"1 WALL STREET, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "0 Broadway, Manhattan",
+  "category": "gate-review-bad",
+  "outcome": "mismatch",
+  "why": "the house number differs; the street name differs; closest candidate \"23 B'WAY, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "-5 Broadway, Manhattan",
+  "category": "gate-review-bad",
+  "outcome": "mismatch",
+  "why": "no house number was given; the street name differs; closest candidate \"5 BROADWAY, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "Lot 1 Block 1, Manhattan",
+  "category": "gate-review-bad",
+  "outcome": "mismatch",
+  "why": "no house number was given; the street name differs; closest candidate \"1 LT HALLORAN STREET, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "asdfghjkl",
+  "category": "gate-review-bad",
+  "outcome": "no-match",
+  "why": "No NYC address match for \"asdfghjkl\". Use the form \"<house number> <street>, <borough>\", e.g. \"350 5th Ave, Manhattan\", or pass a bin/bbl instead."
+ },
+ {
+  "input": "350 5th Ave, Manhattan, NY 11111",
+  "category": "gate-review-bad",
+  "outcome": "mismatch",
+  "why": "the zip code differs; closest candidate \"350 5 AVENUE, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "1600 Pennsylvania Ave, Manhattan",
+  "category": "gate-review-bad",
+  "outcome": "mismatch",
+  "why": "the house number differs; the borough differs; closest candidate \"218 PENNSYLVANIA AVENUE, Brooklyn, NY, USA\" (Brooklyn)"
+ },
+ {
+  "input": "9999 5th Ave",
+  "category": "gate-review-bad",
+  "outcome": "mismatch",
+  "why": "the house number differs; closest candidate \"123-05 5 AVENUE, College Point, NY, USA\" (Queens)"
+ },
+ {
+  "input": "1 Smith Street, Bronx",
+  "category": "gate-review-bad",
+  "outcome": "mismatch",
+  "why": "the borough differs; closest candidate \"1 SMITH STREET, Brooklyn, NY, USA\" (Brooklyn)"
+ },
+ {
+  "input": "30 Rockefeller Plaza, Staten Island",
+  "category": "gate-review-bad",
+  "outcome": "mismatch",
+  "why": "the borough differs; closest candidate \"30 ROCKEFELLER PLAZA, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "350 5th Ave, Manhattan",
+  "category": "gate-review-correct",
+  "outcome": "success",
+  "bin": "1015862",
+  "matched": "350 5 AVENUE, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "350 FIFTH AVENUE, MANHATTAN",
+  "category": "gate-review-correct",
+  "outcome": "success",
+  "bin": "1015862",
+  "matched": "350 FIFTH AVENUE, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "350 fifth ave manhattan",
+  "category": "gate-review-correct",
+  "outcome": "success",
+  "bin": "1015862",
+  "matched": "350 FIFTH AVENUE, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "233 Broadway, New York, NY 10279",
+  "category": "gate-review-correct",
+  "outcome": "success",
+  "bin": "1087167",
+  "matched": "233 BROADWAY, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "209 Joralemon St, Brooklyn",
+  "category": "gate-review-correct",
+  "outcome": "success",
+  "bin": "3000256",
+  "matched": "209 JORALEMON STREET, Brooklyn, NY, USA (Brooklyn)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "209 JORALEMON STREET BROOKLYN",
+  "category": "gate-review-correct",
+  "outcome": "success",
+  "bin": "3000256",
+  "matched": "209 JORALEMON STREET, Brooklyn, NY, USA (Brooklyn)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "1 Centre St, Manhattan",
+  "category": "gate-review-correct",
+  "outcome": "success",
+  "bin": "1001394",
+  "matched": "1 CENTER STREET, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "11 Wall St, Manhattan",
+  "category": "gate-review-correct",
+  "outcome": "success",
+  "bin": "1078982",
+  "matched": "11 WALL STREET, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "2 St Marks Pl, Manhattan",
+  "category": "gate-review-correct",
+  "outcome": "success",
+  "bin": "1006657",
+  "matched": "2 SAINT MARK'S PLACE, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "30 Rockefeller Plaza, Manhattan",
+  "category": "gate-review-correct",
+  "outcome": "success",
+  "bin": "1076262",
+  "matched": "30 ROCKEFELLER PLAZA, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "1 E 161st St, Bronx",
+  "category": "gate-review-correct",
+  "outcome": "success",
+  "bin": "2114490",
+  "matched": "1 EAST 161 STREET, Bronx, NY, USA (Bronx)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "120 Broadway, Manhattan",
+  "category": "gate-review-correct",
+  "outcome": "success",
+  "bin": "1001026",
+  "matched": "120 BROADWAY, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "100 Grand St",
+  "category": "no-borough",
+  "outcome": "ambiguous",
+  "why": "matches 2 different places: \"100 GRAND STREET, Brooklyn, NY, USA\" (Brooklyn), bin \"3379756\"; \"100 GRAND STREET, New York, NY, USA\" (Manhattan), bin \"1007044\""
+ },
+ {
+  "input": "200 Park Ave",
+  "category": "no-borough",
+  "outcome": "mismatch",
+  "why": "the street name differs; closest candidate \"200 PARK AVENUE SOUTH, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "100 Fulton St",
+  "category": "no-borough",
+  "outcome": "success",
+  "bin": "1001192",
+  "matched": "100 FULTON STREET, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "50 Bay St",
+  "category": "no-borough",
+  "outcome": "mismatch",
+  "why": "the street name differs; closest candidate \"50 BAY 50 STREET, Brooklyn, NY, USA\" (Brooklyn)"
+ },
+ {
+  "input": "1 Broadway",
+  "category": "no-borough",
+  "outcome": "ambiguous",
+  "why": "matches 2 different places: \"1 BROADWAY, New York, NY, USA\" (Manhattan), bin \"1000043\"; \"1 BROADWAY, Howard Beach, NY, USA\" (Queens), bin \"4315283\""
+ },
+ {
+  "input": "100 Lafayette St",
+  "category": "no-borough",
+  "outcome": "success",
+  "bin": "1002329",
+  "matched": "100 LAFAYETTE STREET, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "100 Lafayette Ave",
+  "category": "no-borough",
+  "outcome": "ambiguous",
+  "why": "matches 2 different places: \"100 LAFAYETTE AVENUE, Staten Island, NY, USA\" (Staten Island), bin \"5001761\"; \"100 LAFAYETTE AVENUE, Brooklyn, NY, USA\" (Brooklyn), bin \"3059322\""
+ },
+ {
+  "input": "300 Atlantic Ave",
+  "category": "no-borough",
+  "outcome": "success",
+  "bin": "3000833",
+  "matched": "300 ATLANTIC AVENUE, Brooklyn, NY, USA (Brooklyn)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "100 Court St",
+  "category": "no-borough",
+  "outcome": "success",
+  "bin": "3378157",
+  "matched": "100 COURT STREET, Brooklyn, NY, USA (Brooklyn)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "10 Union St",
+  "category": "no-borough",
+  "outcome": "mismatch",
+  "why": "the street type differs; closest candidate \"10 UNION SQUARE, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "100 Jay St",
+  "category": "no-borough",
+  "outcome": "success",
+  "bin": "3391186",
+  "matched": "100 JAY STREET, Brooklyn, NY, USA (Brooklyn)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "100 Washington St",
+  "category": "no-borough",
+  "outcome": "success",
+  "bin": "1088750",
+  "matched": "100 WASHINGTON STREET, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "200 Madison St",
+  "category": "no-borough",
+  "outcome": "ambiguous",
+  "why": "matches 2 different places: \"200 MADISON STREET, New York, NY, USA\" (Manhattan), bin \"1077512\"; \"200 MADISON STREET, Brooklyn, NY, USA\" (Brooklyn), no real building (placeholder BIN)"
+ },
+ {
+  "input": "100 Bedford Ave",
+  "category": "no-borough",
+  "outcome": "success",
+  "bin": "3061543",
+  "matched": "100 BEDFORD AVENUE, Brooklyn, NY, USA (Brooklyn)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "100 Prospect Pl",
+  "category": "no-borough",
+  "outcome": "success",
+  "bin": "3018934",
+  "matched": "100 PROSPECT PLACE, Brooklyn, NY, USA (Brooklyn)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "100 Clinton St",
+  "category": "no-borough",
+  "outcome": "ambiguous",
+  "why": "matches 2 different places: \"100 CLINTON STREET, New York, NY, USA\" (Manhattan), bin \"1004193\"; \"100 CLINTON STREET, Brooklyn, NY, USA\" (Brooklyn), bin \"3329458\""
+ },
+ {
+  "input": "100 Franklin St",
+  "category": "no-borough",
+  "outcome": "ambiguous",
+  "why": "matches 2 different places: \"100 FRANKLIN STREET, Brooklyn, NY, USA\" (Brooklyn), bin \"3064945\"; \"100 FRANKLIN STREET, New York, NY, USA\" (Manhattan), bin \"1091686\""
+ },
+ {
+  "input": "100 Greene St",
+  "category": "no-borough",
+  "outcome": "ambiguous",
+  "why": "matches 2 different places: \"100 GREENE STREET, Brooklyn, NY, USA\" (Brooklyn), bin \"3427204\"; \"100 GREENE STREET, New York, NY, USA\" (Manhattan), bin \"1007603\""
+ },
+ {
+  "input": "100 Henry St",
+  "category": "no-borough",
+  "outcome": "ambiguous",
+  "why": "matches 2 different places: \"100 HENRY STREET, Brooklyn, NY, USA\" (Brooklyn), bin \"3335928\"; \"100 HENRY STREET, New York, NY, USA\" (Manhattan), bin \"1003286\""
+ },
+ {
+  "input": "100 Water St",
+  "category": "no-borough",
+  "outcome": "ambiguous",
+  "why": "matches 2 different places: \"100 WATER STREET, Brooklyn, NY, USA\" (Brooklyn), bin \"3329425\"; \"100 WATER STREET, New York, NY, USA\" (Manhattan), no real building (placeholder BIN)"
+ },
+ {
+  "input": "Brooklyn Museum",
+  "category": "landmark-or-name",
+  "outcome": "success",
+  "bin": "3029667",
+  "matched": "BROOKLYN MUSEUM, Brooklyn, NY, USA (Brooklyn)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "Bronx Zoo",
+  "category": "landmark-or-name",
+  "outcome": "placeholder",
+  "why": "matched \"BRONX ZOO, Bronx, NY, USA\", but the city lists no real building there (its BIN is a borough-level placeholder, 2000000). Check the address, or pass a b"
+ },
+ {
+  "input": "Queens College",
+  "category": "landmark-or-name",
+  "outcome": "placeholder",
+  "why": "matched \"QUEENS COLLEGE, Flushing, NY, USA\", but the city lists no real building there (its BIN is a borough-level placeholder, 4000000). Check the address, or "
+ },
+ {
+  "input": "Madison Square Garden",
+  "category": "landmark-or-name",
+  "outcome": "success",
+  "bin": "1082908",
+  "matched": "MADISON SQUARE GARDEN, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "Yankee Stadium",
+  "category": "landmark-or-name",
+  "outcome": "success",
+  "bin": "2114490",
+  "matched": "YANKEE STADIUM, Bronx, NY, USA (Bronx)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "Lincoln Center",
+  "category": "landmark-or-name",
+  "outcome": "placeholder",
+  "why": "matched \"LINCOLN CENTER, New York, NY, USA\", but the city lists no real building there (its BIN is a borough-level placeholder, 1000000). Check the address, or "
+ },
+ {
+  "input": "Carnegie Hall",
+  "category": "landmark-or-name",
+  "outcome": "success",
+  "bin": "1023449",
+  "matched": "CARNEGIE HALL, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "The Dakota",
+  "category": "landmark-or-name",
+  "outcome": "mismatch",
+  "why": "the street name differs; closest candidate \"THE CHURCH OF THE EPIPHANY, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "Flatiron Building",
+  "category": "landmark-or-name",
+  "outcome": "success",
+  "bin": "1016278",
+  "matched": "FLATIRON BUILDING, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "Chrysler Building",
+  "category": "landmark-or-name",
+  "outcome": "success",
+  "bin": "1036156",
+  "matched": "CHRYSLER BUILDING, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "Woolworth Building",
+  "category": "landmark-or-name",
+  "outcome": "success",
+  "bin": "1087167",
+  "matched": "WOOLWORTH BUILDING, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "Barclays Center",
+  "category": "landmark-or-name",
+  "outcome": "success",
+  "bin": "3398156",
+  "matched": "BARCLAY'S CENTER, Brooklyn, NY, USA (Brooklyn)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "Brooklyn Bridge",
+  "category": "landmark-or-name",
+  "outcome": "mismatch",
+  "why": "no house number was given; closest candidate \"23 BROOKLYN BRIDGE, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "Statue of Liberty",
+  "category": "landmark-or-name",
+  "outcome": "success",
+  "bin": "1000002",
+  "matched": "STATUE OF LIBERTY, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "Brooklyn Ave",
+  "category": "landmark-or-name",
+  "outcome": "mismatch",
+  "why": "no house number was given; closest candidate \"58 BROOKLYN AVENUE, Brooklyn, NY, USA\" (Brooklyn)"
+ },
+ {
+  "input": "Queens Village",
+  "category": "landmark-or-name",
+  "outcome": "mismatch",
+  "why": "the street name differs; closest candidate \"QSAC QUEENS VILLAGE, Queens Village, NY, USA\" (Queens)"
+ },
+ {
+  "input": "Staten Island Mall",
+  "category": "landmark-or-name",
+  "outcome": "mismatch",
+  "why": "the street name differs; closest candidate \"STATEN IS COLLEGE, Staten Island, NY, USA\" (Staten Island)"
+ },
+ {
+  "input": "Kings Plaza",
+  "category": "landmark-or-name",
+  "outcome": "mismatch",
+  "why": "no house number was given; closest candidate \"5601 KINGS PLAZA, Brooklyn, NY, USA\" (Brooklyn)"
+ },
+ {
+  "input": "Bronx Park",
+  "category": "landmark-or-name",
+  "outcome": "placeholder",
+  "why": "matched \"BRONX PARK, Bronx, NY, USA\", but the city lists no real building there (its BIN is a borough-level placeholder, 2000000). Check the address, or pass a "
+ },
+ {
+  "input": "Manhattan Bridge",
+  "category": "landmark-or-name",
+  "outcome": "mismatch",
+  "why": "the street name differs; closest candidate \"MANHATTAN COLLEGE MANHATTAN HALL, Bronx, NY, USA\" (Bronx)"
+ },
+ {
+  "input": "Main Street",
+  "category": "landmark-or-name",
+  "outcome": "mismatch",
+  "why": "no house number was given; closest candidate \"190C MAIN STREET, Bronx, NY, USA\" (Bronx)"
+ },
+ {
+  "input": "Broadway",
+  "category": "landmark-or-name",
+  "outcome": "mismatch",
+  "why": "no house number was given; the street name differs; closest candidate \"1306 B'WAY, Brooklyn, NY, USA\" (Brooklyn)"
+ },
+ {
+  "input": "Park Avenue",
+  "category": "landmark-or-name",
+  "outcome": "mismatch",
+  "why": "no house number was given; closest candidate \"897 PARK AVENUE, Brooklyn, NY, USA\" (Brooklyn)"
+ },
+ {
+  "input": "Court Square",
+  "category": "landmark-or-name",
+  "outcome": "mismatch",
+  "why": "no house number was given; closest candidate \"1 COURT SQUARE, Brooklyn, NY, USA\" (Brooklyn)"
+ },
+ {
+  "input": "Union Square",
+  "category": "landmark-or-name",
+  "outcome": "mismatch",
+  "why": "no house number was given; closest candidate \"5 UNION SQUARE, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "zzzz nowhere qq",
+  "category": "existing-test",
+  "outcome": "no-match",
+  "why": "No NYC address match for \"zzzz nowhere qq\". Use the form \"<house number> <street>, <borough>\", e.g. \"350 5th Ave, Manhattan\", or pass a bin/bbl instead."
+ },
+ {
+  "input": "1 Main St'; DROP TABLE x; -- $where=1=1",
+  "category": "existing-test",
+  "outcome": "no-match",
+  "why": "No NYC address match for \"1 Main St'; DROP TABLE x; -- $where=1=1\". Use the form \"<house number> <street>, <borough>\", e.g. \"350 5th Ave, Manhattan\", or pass a "
+ },
+ {
+  "input": "1 Stuyvesant Oval, Manhattan",
+  "category": "existing-test",
+  "outcome": "success",
+  "bin": "1082881",
+  "matched": "1 STUYVESANT OVAL, New York, NY, USA (Manhattan)",
+  "why": "house number, street name, street type and any borough/zip agree; the only matching building among the candidates"
+ },
+ {
+  "input": "9999 5th Ave, Manhattan",
+  "category": "existing-test",
+  "outcome": "mismatch",
+  "why": "the house number differs; closest candidate \"6 5 AVENUE, New York, NY, USA\" (Manhattan)"
+ },
+ {
+  "input": "350 FIFTH AVE",
+  "category": "existing-test",
+  "outcome": "ambiguous",
+  "why": "matches 2 different places: \"350 FIFTH AVENUE, Brooklyn, NY, USA\" (Brooklyn), bin \"3021057\"; \"350 FIFTH AVENUE, New York, NY, USA\" (Manhattan), bin \"1015862\""
+ }
+]

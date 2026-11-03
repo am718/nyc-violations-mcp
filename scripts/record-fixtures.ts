@@ -1,6 +1,6 @@
 /**
  * Records live HTTP responses (URL -> body) used by the offline tests.
- * Run: npm run build && node dist/scripts/record-fixtures.js
+ * Run: npm run build && node dist/scripts/record-fixtures.js   (also re-records the address cases: scripts/record-address-cases.ts)
  * Only public NYC data is recorded. No tokens are sent (SOCRATA_APP_TOKEN is ignored here).
  */
 import { createHash } from "node:crypto";
@@ -78,3 +78,5 @@ await attempt("gct ecb open", () => getEcbViolations(r, { bin: "1035381", status
 await attempt("res summary", () => buildingComplianceSummary(r, { bin: "2099579" }));
 await attempt("res hpd", () => getHpdViolations(r, { bbl: "2046540021", status: "closed", limit: 3 }));
 await attempt("res hpd by bin", () => getHpdViolations(r, { bin: "2099579", limit: 3 }));
+// The adversarial address cases (GeoSearch responses + expected outcomes); this run deleted their fixtures above.
+await import("./record-address-cases.js");

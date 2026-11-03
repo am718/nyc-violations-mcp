@@ -1,0 +1,5 @@
+{
+ "url": "https://geosearch.planninglabs.nyc/v2/search?text=%E5%B8%9D%E5%9B%BD%E5%A4%A7%E5%8E%A6+%E7%BA%BD%E7%BA%A6&size=10",
+ "status": 200,
+ "body": "{\"geocoding\":{\"version\":\"0.2\",\"attribution\":\"http://geosearch.planninglabs.nyc/attribution\",\"query\":{\"text\":\"帝国大厦 纽约\",\"size\":10,\"layers\":[\"venue\",\"street\",\"country\",\"macroregion\",\"region\",\"county\",\"localadmin\",\"locality\",\"borough\",\"neighbourhood\",\"continent\",\"empire\",\"dependency\",\"macrocounty\",\"macrohood\",\"microhood\",\"disputed\",\"postalcode\",\"ocean\",\"marinearea\"],\"private\":false,\"lang\":{\"name\":\"English\",\"iso6391\":\"en\",\"iso6393\":\"eng\",\"via\":\"default\",\"defaulted\":true},\"querySize\":20,\"parser\":\"pelias\",\"parsed_text\":{\"subject\":\"帝国大厦 纽约\"}},\"warnings\":[\"performance optimization: excluding 'address' layer\",\"invalid language provided via header\"],\"engine\":{\"name\":\"Pelias\",\"author\":\"Mapzen\",\"version\":\"1.0\"},\"timestamp\":1793723828866},\"type\":\"FeatureCollection\",\"features\":[]}"
+}

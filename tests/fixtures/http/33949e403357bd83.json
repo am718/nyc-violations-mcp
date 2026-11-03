@@ -1,0 +1,5 @@
+{
+ "url": "https://geosearch.planninglabs.nyc/v2/search?text=5th+Ave+and+34th+St&size=10",
+ "status": 200,
+ "body": "{\"geocoding\":{\"version\":\"0.2\",\"attribution\":\"http://geosearch.planninglabs.nyc/attribution\",\"query\":{\"text\":\"5th Ave and 34th St\",\"size\":10,\"private\":false,\"lang\":{\"name\":\"English\",\"iso6391\":\"en\",\"iso6393\":\"eng\",\"via\":\"default\",\"defaulted\":true},\"querySize\":20,\"parser\":\"pelias\",\"parsed_text\":{\"subject\":\"5th Ave & 34th St\",\"street\":\"5th Ave\",\"cross_street\":\"34th St\"}},\"warnings\":[\"invalid language provided via header\"],\"engine\":{\"name\":\"Pelias\",\"author\":\"Mapzen\",\"version\":\"1.0\"},\"timestamp\":1793723856955},\"type\":\"FeatureCollection\",\"features\":[]}"
+}

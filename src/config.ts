@@ -11,6 +11,11 @@ export type DatasetKey = keyof typeof DATASETS;
 export const SOCRATA_HOST = "data.cityofnewyork.us";
 export const SOCRATA_BASE = `https://${SOCRATA_HOST}/resource`;
 export const GEOSEARCH_URL = "https://geosearch.planninglabs.nyc/v2/search";
+/**
+ * How many GeoSearch candidates to compare with the input. More than one is needed to notice ambiguity: verified live
+ * 2026-11-03, "Borough Hall" returns 4 exact matches in 4 boroughs and "350 Fifth Ave" ranks Brooklyn before Manhattan.
+ */
+export const GEOSEARCH_CANDIDATES = 10;
 
 export const SOURCE_NAME = "NYC Open Data (Socrata)";
 export const GEOSEARCH_SOURCE_NAME = "NYC Planning Labs GeoSearch";
