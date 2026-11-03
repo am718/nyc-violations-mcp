@@ -52,7 +52,7 @@ If no borough or zip was typed and the match is unique, it carries a note naming
 an unusual spelling the table does not know produces an error that still shows the candidate, so the caller can confirm it by
 passing its BIN. The `< 0.8` low-confidence note is kept but has not been seen to fire.
 
-All 177 inputs tried on 2026-11-03 (borough/city/zip-only, borough words as street names, house-less, street-type-only,
+All inputs tried on 2026-11-03 (borough/city/zip-only, borough words as street names, house-less, street-type-only,
 neighbourhoods, misspellings, case, punctuation, unicode, long strings, intersections, no-borough duplicates, landmarks, and the
 gate review's 25 bad and 12 correct inputs) are listed with their outcome and reason in [`ADDRESS_CASES.md`](ADDRESS_CASES.md); no
 wrong building came back as a success. Known limits: ambiguity is only seen among the 10 candidates GeoSearch returns, and a

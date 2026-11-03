@@ -33,7 +33,7 @@ characters, summaries before details); errors say what a valid value looks like 
 
 ## Install and run (local)
 
-Requires **Node 22 or newer** (`engines: >=22`). Tested on 2026-11-02: Node 22.22.0 and 24.22.2 (build, 290 tests and server start pass). **Node 20.20.2 does not work**: the SQLite cache module (`better-sqlite3` 13) crashes with a segfault and the test runner (vitest 5) does not support it. Other 22.x/24.x/later versions are UNVERIFIED (vitest declares `^22.12 || ^24 || >=26`; Node 25 was not tested). Not published to npm: clone/copy the folder, then:
+Requires **Node 22 or newer** (`engines: >=22`). Tested on 2026-11-02: Node 22.22.0 and 24.22.2 (build, all tests and server start pass; `npm test` prints the current count). **Node 20.20.2 does not work**: the SQLite cache module (`better-sqlite3` 13) crashes with a segfault and the test runner (vitest 5) does not support it. Other 22.x/24.x/later versions are UNVERIFIED (vitest declares `^22.12 || ^24 || >=26`; Node 25 was not tested). Not published to npm: clone/copy the folder, then:
 
 ```bash
 npm install
@@ -124,7 +124,10 @@ HPD uses `Open`/`Close`. All three mappings live in `src/status.ts`.
 
 ## Data caveats and lag
 
-- Open data can lag official systems (DOB BIS/DOB NOW, HPD Online, OATH). Datasets were updated within about a day when checked.
+- Open data can lag official systems (DOB BIS/DOB NOW, HPD Online, OATH), and how often each dataset is refreshed varies. Measured
+  2026-11-03 16:41 UTC (`rowsUpdatedAt` from `/api/views/<id>.json`): DOB `3h2n-5cm9` last updated 2026-11-02 18:38 UTC, ECB `6bgk-3dad`
+  2026-10-31 17:10 UTC (about 3 days earlier, although the portal lists it as "Every weekday"), HPD `wvxf-dwi5` 2026-11-02 15:52 UTC
+  (listed as "Daily"). Every response's `fetched_at` says when this server read the data; it is not the dataset's own update time.
 - No result is legal advice or proof of compliance. An empty result is "none found", never "compliant".
 - **HPD covers residential buildings only.** No HPD rows means "no HPD coverage expected or none found".
 - Text fields (descriptions, comments, respondent names) come from public records and are untrusted: they are truncated,
@@ -142,8 +145,8 @@ HPD uses `Open`/`Close`. All three mappings live in `src/status.ts`.
 
 ## How this compares to other servers
 
-Checked 2026-11-01; details and caveats in [`docs/COMPARISON.md`](docs/COMPARISON.md). I read only one repo's code
-(nyc-property-intel); the rest are from directory listings.
+**UNVERIFIED:** checked once on 2026-11-01 and not re-checked since; third-party repos and listings change. Details and caveats in
+[`docs/COMPARISON.md`](docs/COMPARISON.md). I read only one repo's code (nyc-property-intel); the rest are from directory listings.
 
 - [ccedacero/nyc-property-intel](https://github.com/ccedacero/nyc-property-intel) (MIT, Python): a much broader due-diligence server
   (18 tools: ownership, tax, ACRIS, permits, crime, comps...) over its own Postgres mirror of the data. Use it if you want that breadth.
@@ -159,7 +162,7 @@ offline tests with recorded fixtures, and an explicit query-injection test.
 - Only DOB, ECB and HPD violations. No permits, complaints, ownership, or OATH hearing details beyond the ECB dataset.
 - One BIN per summary. `building_compliance_summary` counts DOB, ECB **and HPD** by the same BIN and returns a `footprint` field saying so, plus `other_bins_on_lot` (approximate count of other buildings on the same lot seen in DOB/HPD records, whose violations are not counted). For a lot like Stuyvesant Town (about 35 BINs) the summary covers one building only. `resolve_property` with a `bbl` lists other BINs on the lot (at most 9); when that list is partial it also returns `other_bins_total` (approximate) and `other_bins_truncated: true`. Measured for Stuyvesant Town: 8 listed, total 34.
 - BIN/BBL inputs are resolved through DOB/HPD rows, so a valid BIN with no violation records anywhere cannot be resolved (use the address).
-- GeoSearch always returns candidates and scores right and wrong ones alike (0.8 for street addresses; 1/exact even for "Queens" -> a Bronx building), so the score is not trusted. `resolve_property` refuses input that names only a borough, city or zip code; compares the house number, street name, street type, borough and zip you typed with each of GeoSearch's 10 closest candidates; and returns a building only when exactly one matches. Otherwise it returns an error showing the closest candidate, or every matching building, with BINs. Ambiguity is only seen among those 10 candidates. 177 adversarial and control inputs, with outcomes: [`docs/ADDRESS_CASES.md`](docs/ADDRESS_CASES.md); rules: `docs/DATA.md`.
+- GeoSearch always returns candidates and scores right and wrong ones alike (0.8 for street addresses; 1/exact even for "Queens" -> a Bronx building), so the score is not trusted. `resolve_property` refuses input that names only a borough, city or zip code; compares the house number, street name, street type, borough and zip you typed with each of GeoSearch's 10 closest candidates; and returns a building only when exactly one matches. Otherwise it returns an error showing the closest candidate, or every matching building, with BINs. Ambiguity is only seen among those 10 candidates. Every adversarial and control input tried, with its outcome: [`docs/ADDRESS_CASES.md`](docs/ADDRESS_CASES.md) (generated from the recorded cases); rules: `docs/DATA.md`.
 - `building_compliance_summary` makes **12 to 14 upstream requests** at 1 request per second, so a cold call takes at least about 11 to 13 seconds. The count depends on the building: 12 is the base; +1 for each of DOB and ECB that has open records (a second count of annotated rows), and +1 when the BIN has to be looked up in HPD because DOB has no rows for it. Measured on 2026-11-02 on five buildings: 12 (Stuyvesant Town, by BIN), 13 (Empire State Building by address, by BBL; BIN 2130638), 14 (233 Broadway); 11.2 to 13.1 s each, and 19.0 s once when the upstream was slow. A repeat call is served from the cache in under 10 ms with 0 requests. `get_*_violations` make 3 requests (2.3 s measured); `resolve_property` by address makes 1 (0.1 s), by BBL 1 to 3 (3 when the lot has many address variants or buildings).
 - Borough placeholder identifiers (BINs `X000000`; BBLs with block 00000/99999 or lot 0000) are rejected with a message to use the address, because thousands of unrelated records share them.
 - Datasets or field names can change; `docs/DATA.md` records what was verified on 2026-11-01.
@@ -177,10 +180,10 @@ offline tests with recorded fixtures, and an explicit query-injection test.
 
 ## Reviews and known weaknesses
 
-Three reviews are kept in the repo on purpose, including what they found wrong: [`docs/reviews/REVIEW_REPORT.md`](docs/reviews/REVIEW_REPORT.md) (the builder's
-self-review), [`docs/reviews/REVIEW_REPORT_INDEPENDENT.md`](docs/reviews/REVIEW_REPORT_INDEPENDENT.md) (a second pass) and
-[`docs/reviews/REVIEW_REPORT_FINAL.md`](docs/reviews/REVIEW_REPORT_FINAL.md) (a third pass with mutation testing and live checks). The second and third were run in the
-same session as the build, so they are not fully independent. [`REVIEW.md`](REVIEW.md) maps each finding to the commit that fixed it.
+Four reviews are kept in the repo on purpose, including what they found wrong: [`docs/reviews/REVIEW_REPORT.md`](docs/reviews/REVIEW_REPORT.md) (the builder's
+self-review), [`docs/reviews/REVIEW_REPORT_INDEPENDENT.md`](docs/reviews/REVIEW_REPORT_INDEPENDENT.md) (a second pass),
+[`docs/reviews/REVIEW_REPORT_FINAL.md`](docs/reviews/REVIEW_REPORT_FINAL.md) (a third pass with mutation testing and live checks) and [`docs/reviews/REVIEW_REPORT_GATE.md`](docs/reviews/REVIEW_REPORT_GATE.md)
+(a push/no-push gate review). The second, third and gate reviews were run in the same session as the build, so they are not fully independent. [`REVIEW.md`](REVIEW.md) maps each finding to the commit that fixed it.
 
 ## Development
 

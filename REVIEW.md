@@ -10,13 +10,14 @@ A TypeScript MCP server (official `@modelcontextprotocol/sdk`, stdio, zod valida
 It queries three NYC Open Data Socrata datasets (DOB `3h2n-5cm9`, ECB `6bgk-3dad`, HPD `wvxf-dwi5`) and uses NYC Planning Labs
 GeoSearch for address -> BIN/BBL. It has a SQLite TTL cache, 1 req/sec limiter, retry with backoff, request timeout, a
 response-size cap, a single place for per-dataset status mapping and for date normalization, coverage notes instead of bare
-zeros for HPD, 251 offline vitest tests with recorded fixtures, inspector scripts, a 10-building validation, README and docs.
+zeros for HPD, offline vitest tests with recorded fixtures, inspector scripts, a 10-building validation, README and docs.
 
 ## 2. How to run
 
 ```bash
 npm install && npm run build
-npm test                           # builds, then 295 tests, offline; tests/setup-no-network.ts makes any global fetch throw
+npm test                           # builds, then runs every test offline (vitest prints the count); tests/setup-no-network.ts makes any global fetch throw
+npm run check:network-guard       # shows the no-network guard both ways: a scratch fetch test fails with it, passes without it
 bash scripts/inspect.sh            # Inspector web UI
 bash scripts/inspect.sh --cli --method tools/list
 bash scripts/inspector-check.sh    # all 5 tools via Inspector CLI, LIVE network, writes docs/evidence/inspector-*.json
@@ -156,7 +157,7 @@ Still UNVERIFIED: Claude Desktop config; a live Socrata app token (header logic 
 | M2 rate limiter race | Fixed | `8e2e8f7` | Callers chained on a promise. Fake-timer tests: 5 concurrent calls start at least 1000 ms apart; retries/backoff interleaved with other callers stay spaced; a failed call does not block the queue. Real-time repro: gaps 1004, 1003, 1001, 1002 ms (was 1003, 1, 0, 0) |
 | m1 flat "13 requests" | Fixed | `a36e920` | Measured 12 to 14 (12 Stuyvesant Town by BIN, 13 Empire State Building and BIN 2130638, 14 233 Broadway); reasons in README |
 | m2 `other_bins_on_lot` counts placeholder BINs | Fixed | `2ce8eef` | `bin NOT LIKE '_000000'` in the distinct-BIN count (verified live on DOB and HPD); BIN 2130638 now reports 0 others (test with recorded counts) |
-| m3 "Node 20+" unverified | Fixed (claim was wrong) | `f64a727` | Tested Node 20.20.2 (fails: `better-sqlite3` segfault, vitest unsupported), 22.22.0 and 24.22.2 (build, 295 tests, server start pass). `engines` is `>=22`; other versions UNVERIFIED |
+| m3 "Node 20+" unverified | Fixed (claim was wrong) | `f64a727` | Tested Node 20.20.2 (fails: `better-sqlite3` segfault, vitest unsupported), 22.22.0 and 24.22.2 (build, all tests, server start pass). `engines` is `>=22`; other versions UNVERIFIED |
 | m4 partial BIN list not marked | Fixed | `0888621` | `other_bins_total` and `other_bins_truncated` when the list is partial (Stuyvesant Town: 8 listed, total 34) |
 | m5 docs lag | Fixed | `16dc893` | README review section, UNVERIFIED lines closed with the final review's evidence, this section |
 | m6 history tidiness | Fixed | final history rewrite (no commit of its own; this file's hashes were updated in the commit that follows it) | The temp-directory word and the truncated session-link string removed from the tree and all commit messages; the two review files that rode along in Fix 1 commits stay (the reports are kept on purpose) |

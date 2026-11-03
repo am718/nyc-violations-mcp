@@ -1,6 +1,7 @@
 # Comparison with existing servers
 
-Findings from a bounded, read-only check via GitHub web/API (2026-11-01). Nothing was cloned or run.
+**UNVERIFIED as of 2026-11-03:** these findings come from one bounded, read-only check via GitHub web/API on 2026-11-01 and were
+not re-checked; third-party repos and listings change. Nothing was cloned or run.
 Everything below was read from the repo's public pages and is as of that date.
 
 ## ccedacero/nyc-property-intel (closest overlap)
