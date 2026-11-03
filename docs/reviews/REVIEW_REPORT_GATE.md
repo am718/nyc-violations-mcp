@@ -1,4 +1,6 @@
-# Gate review: nyc-violations-mcp (HEAD de5e396, 34 commits)
+# Gate review: nyc-violations-mcp (HEAD f1977b8, 34 commits)
+
+(Commit hashes in this report were updated after the Fixes 4 history rewrite, which changed every hash but not the reviewed content.)
 
 Date: 2026-11-03. Node 22.22.0 (the version in `engines: >=22`). All results below come from commands run during this review.
 
