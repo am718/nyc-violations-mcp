@@ -80,6 +80,9 @@ export const VALID_DATE: Record<DatasetKey, string> = {
   hpd: "novissueddate IS NOT NULL",
 };
 
+/** Max (bin, address) groups fetched when listing the BINs on a lot. */
+export const LOT_BIN_GROUP_LIMIT = 10;
+
 export const queries = {
   list(dataset: DatasetKey, loc: Locator, status: "open" | "closed" | undefined, limit: number): SoqlQuery {
     return {
@@ -167,7 +170,7 @@ export const queries = {
       where: locatorClause("dob", { by: "bbl", bbl }),
       group: "bin, house_number, street",
       order: "n DESC",
-      limit: 10,
+      limit: LOT_BIN_GROUP_LIMIT,
     };
   },
   hpdBinsForBbl(bbl: string): SoqlQuery {
@@ -177,7 +180,7 @@ export const queries = {
       where: locatorClause("hpd", { by: "bbl", bbl }),
       group: "bin, housenumber, streetname",
       order: "n DESC",
-      limit: 10,
+      limit: LOT_BIN_GROUP_LIMIT,
     };
   },
 };

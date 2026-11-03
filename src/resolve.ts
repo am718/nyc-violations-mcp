@@ -4,7 +4,7 @@ import { ToolError } from "./errors.js";
 import type { HttpClient } from "./http.js";
 import { BOROUGHS, isPlaceholderBbl, isPlaceholderBin, isRealBin, joinBbl } from "./ids.js";
 import { cleanText, isRow } from "./normalize.js";
-import { queries, type SocrataClient } from "./socrata.js";
+import { LOT_BIN_GROUP_LIMIT, queries, type SocrataClient } from "./socrata.js";
 import type { SourceRef } from "./format.js";
 
 export interface Property {
@@ -13,6 +13,9 @@ export interface Property {
   bbl: string;
   borough: string | null;
   other_bins_on_lot?: string[];
+  /** Present only when other_bins_on_lot is a partial list: how many other buildings the lot has (approximate), and that the list is cut. */
+  other_bins_total?: number;
+  other_bins_truncated?: boolean;
   match?: { confidence: number | null; match_type: string | null; note?: string };
   sources: SourceRef[];
 }
@@ -172,12 +175,21 @@ export async function resolveBbl(r: Resolver, bbl: string): Promise<Property> {
   }
   const bins = [...new Set(rows.map((x) => x.bin).filter(isRealBin))];
   const primary = first.bin as string;
+  const others = bins.filter((b) => b !== primary);
+  // The group query is capped, so a full page may be only part of the lot. Then say so and give the (approximate) total.
+  let partial: { other_bins_total: number; other_bins_truncated: true } | undefined;
+  if (rows.length >= LOT_BIN_GROUP_LIMIT) {
+    const lot = await otherBinsOnLot(r, bbl);
+    sources.push(...lot.sources);
+    if (lot.count > others.length) partial = { other_bins_total: lot.count, other_bins_truncated: true };
+  }
   return {
     address: fmt(first[key], first[street]),
     bin: primary,
     bbl,
     borough: BOROUGHS[bbl[0]!] ?? null,
-    ...(bins.length > 1 ? { other_bins_on_lot: bins.filter((b) => b !== primary) } : {}),
+    ...(others.length > 0 || partial ? { other_bins_on_lot: others } : {}),
+    ...(partial ?? {}),
     sources,
   };
 }

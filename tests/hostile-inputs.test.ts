@@ -33,6 +33,7 @@ const FIXED = [
   "ecb_violation_status = 'RESOLVE'",
   "violationstatus = 'Open'",
   "violationstatus = 'Close'",
+  "bin NOT LIKE '_000000'",
   "upper(disposition_comments) like '%DELETED%'",
   "hearing_status = 'WRITTEN OFF'",
   "novissueddate IS NOT NULL",
