@@ -11,7 +11,28 @@ All from NYC Open Data (Socrata, `data.cityofnewyork.us`), queried at `/resource
 
 Address resolution: NYC Planning Labs GeoSearch, `https://geosearch.planninglabs.nyc/v2/search?text=...`
 (verified live; returns `properties.addendum.pad.bbl` and `.bin`, plus `borough`, `label`).
-Example: "350 5th Ave Manhattan" -> BIN 1015862, BBL 1008350041 (confidence 0.8, match_type fallback; check confidence).
+Example: "350 5th Ave Manhattan" -> BIN 1015862, BBL 1008350041 (confidence 0.8, match_type fallback).
+
+### What GeoSearch `confidence` 0.8 actually means (verified live 2026-11-02)
+
+Match-quality fields present on each feature: `confidence`, `match_type`, `accuracy`, plus the matched `housenumber`, `street`,
+`borough`, `postalcode`. In 40+ queries, **every street-address query returned `confidence: 0.8`, `match_type: fallback`,
+`accuracy: point`, whether the match was right or wrong**:
+
+- right: "350 5th Ave, Manhattan", "1 Stuyvesant Oval, Manhattan", "37-02 Main St, Queens", ...
+- wrong: "123 Fake Street, Queens" -> 123 WEST 123 STREET (Manhattan); "Lot 1 Block 1, Manhattan" -> 1 LT HALLORAN STREET;
+  "9999 5th Ave, Manhattan" -> house number 6; "5th Ave" (no number) -> a Queens building; "100 Queens Blvd, Queens" -> 30-100.
+- The only different values seen were `confidence: 1` / `match_type: exact` for a landmark *name* ("Empire State Building").
+- A wrong zip code in the input (11111) is ignored by GeoSearch (same building returned).
+
+So 0.8 means "GeoSearch returned its best candidate", not "the address matched", and the score cannot be used as a quality gate.
+The tool therefore compares what the caller typed with what came back (`src/address.ts`): house number (must be equal, or both
+absent), street name (abbreviations, ordinals, directions and Saint/St normalized; every typed word must be found), borough
+(if the caller gave one) and zip (if the caller gave one). On any difference it returns an error showing the best candidate and its BIN,
+and does not return the building as a success. If no borough or zip was typed, the match carries a note naming the borough
+that was assumed. The check is deliberately strict: an unusual spelling the table does not know (e.g. a new abbreviation) produces
+an error that still shows the candidate, so the caller can confirm it by passing its BIN. The `< 0.8` low-confidence note is kept but
+has not been seen to fire.
 
 ## Verified field names
 

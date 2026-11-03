@@ -1,4 +1,5 @@
 import { GEOSEARCH_SOURCE_NAME, GEOSEARCH_URL, SOURCE_NAME, DATASETS } from "./config.js";
+import { checkAddress } from "./address.js";
 import { ToolError } from "./errors.js";
 import type { HttpClient } from "./http.js";
 import { BOROUGHS, isPlaceholderBbl, isPlaceholderBin, isRealBin, joinBbl } from "./ids.js";
@@ -50,6 +51,23 @@ export async function resolveAddress(r: Resolver, address: string): Promise<Prop
   const pad = isRow(props.addendum) && isRow((props.addendum as Record<string, unknown>).pad)
     ? ((props.addendum as Record<string, unknown>).pad as Record<string, unknown>)
     : undefined;
+  // GeoSearch always returns its best candidate; confidence 0.8 is returned for right and wrong matches alike.
+  // So compare what the caller typed with what came back, and refuse to return a different building as a success.
+  const check = checkAddress(address, {
+    housenumber: typeof props.housenumber === "string" ? props.housenumber : null,
+    street: typeof props.street === "string" ? props.street : null,
+    borough: typeof props.borough === "string" ? props.borough : null,
+    postalcode: typeof props.postalcode === "string" ? props.postalcode : null,
+  });
+  if (!check.ok) {
+    const candBin = isRealBin(pad?.bin) ? pad.bin : null;
+    throw new ToolError(
+      `"${cleanText(address, 80)}" does not match the closest NYC address found, "${cleanText(props.label, 80)}"` +
+        `${cleanText(props.borough, 30) ? ` (${cleanText(props.borough, 30)})` : ""}: ${check.reasons.join("; ")}. ` +
+        `That building was NOT used. If it is the one you meant, ${candBin ? `call resolve_property with bin "${candBin}"` : "check the address"}; ` +
+        'otherwise give the full address as "<house number> <street>, <borough>", e.g. "350 5th Ave, Manhattan", or pass a bin/bbl.',
+    );
+  }
   if (typeof pad?.bin === "string" && isPlaceholderBin(pad.bin)) {
     throw new ToolError(
       `"${cleanText(address, 80)}" matched "${cleanText(props.label, 80)}", but the city lists no real building there (its BIN is a borough-level placeholder, ${pad.bin}). ` +
@@ -65,6 +83,14 @@ export async function resolveAddress(r: Resolver, address: string): Promise<Prop
     );
   }
   const confidence = typeof props.confidence === "number" ? props.confidence : null;
+  const notes: string[] = [];
+  if (confidence !== null && confidence < 0.8) notes.push("Low-confidence geocode: verify the matched address before relying on the results.");
+  if (!check.placeGiven) {
+    notes.push(
+      `No borough or zip code was given, so the match was not checked against one; it is in ${cleanText(props.borough, 30) ?? "an unknown borough"}. ` +
+        "Add a borough if that is not the building you meant.",
+    );
+  }
   return {
     address: cleanText(props.label, 120),
     bin,
@@ -73,9 +99,7 @@ export async function resolveAddress(r: Resolver, address: string): Promise<Prop
     match: {
       confidence,
       match_type: cleanText(props.match_type, 30),
-      ...(confidence !== null && confidence < 0.8
-        ? { note: "Low-confidence geocode: verify the matched address before relying on the results." }
-        : {}),
+      ...(notes.length ? { note: notes.join(" ") } : {}),
     },
     sources: [gs(fetchedAt)],
   };

@@ -68,6 +68,10 @@ await attempt("resolve bbl", () => resolvePropertyTool(r, { bbl: ESB.bbl }));
 await attempt("mismatch", () => resolvePropertyTool(r, { bin: ESB.bin, bbl: "1008350042" }));
 await attempt("mismatch chrysler lot", () => resolvePropertyTool(r, { bin: ESB.bin, bbl: "1012970023" }));
 await attempt("matching pair", () => resolvePropertyTool(r, { bin: ESB.bin, bbl: ESB.bbl }));
+// Wrong addresses: GeoSearch still returns a candidate (confidence 0.8), which the tool must refuse. Also valid variants.
+for (const a of ["123 Fake Street, Queens", "Lot 1 Block 1, Manhattan", "9999 5th Ave, Manhattan", "350 FIFTH AVE", "2 St Marks Pl, Manhattan", "1 Centre St, Manhattan"]) {
+  await attempt(`address ${a}`, () => resolvePropertyTool(r, { address: a }));
+}
 await attempt("no match", () => resolvePropertyTool(r, { address: "zzzz nowhere qq" }));
 await attempt("injection address", () => resolvePropertyTool(r, { address: "1 Main St'; DROP TABLE x; -- $where=1=1" }));
 // Multi-building lot (Stuyvesant Town: ~35 BINs on one lot)

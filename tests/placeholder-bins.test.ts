@@ -68,7 +68,7 @@ describe("fix 1: borough placeholder BINs (X000000) are rejected everywhere", ()
   });
 
   it("GeoSearch result with a placeholder BIN is refused with a clear message (synthetic response)", async () => {
-    const geo = { features: [{ properties: { label: "SOME LOT, New York, NY", borough: "Manhattan", confidence: 1, match_type: "exact", addendum: { pad: { bin: "1000000", bbl: "1017450016" } } } }] };
+    const geo = { features: [{ properties: { label: "1 EXAMPLE STREET, New York, NY", housenumber: "1", street: "EXAMPLE STREET", borough: "Manhattan", confidence: 1, match_type: "exact", addendum: { pad: { bin: "1000000", bbl: "1017450016" } } } }] };
     await expect(resolvePropertyTool(makeResolver(stubFetch([geo])), { address: "1 Example St, Manhattan" })).rejects.toThrow(/borough-level placeholder/);
   });
 
@@ -126,7 +126,7 @@ describe("fix 1 (BBL): placeholder BBLs (block 00000/99999 or lot 0000) are reje
     await expect(resolvePropertyTool(makeResolver(stubFetch([dob, []])), { bin: "1015862" })).rejects.toThrow(/unknown block\/lot/);
   });
   it("GeoSearch result with a placeholder BBL but a real BIN is refused as 'not a specific building' (synthetic)", async () => {
-    const geo = { features: [{ properties: { label: "X, New York, NY", borough: "Manhattan", confidence: 1, match_type: "exact", addendum: { pad: { bin: "1015862", bbl: "1000000000" } } } }] };
+    const geo = { features: [{ properties: { label: "1 EXAMPLE STREET, New York, NY", housenumber: "1", street: "EXAMPLE STREET", borough: "Manhattan", confidence: 1, match_type: "exact", addendum: { pad: { bin: "1015862", bbl: "1000000000" } } } }] };
     await expect(resolvePropertyTool(makeResolver(stubFetch([geo])), { address: "1 Example St, Manhattan" })).rejects.toThrow(/not a specific building/);
   });
 });

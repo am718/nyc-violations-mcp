@@ -38,7 +38,9 @@ export function createServer(r: Resolver): McpServer {
       description:
         "Normalize a NYC property to {address, bin, bbl, borough}. Give ONE of address, bin or bbl (bin and bbl may be given together " +
         "to verify they match). Use this FIRST when you only have a street address, or to check that a BIN/BBL pair refers to the " +
-        "same property. Not for fetching violations: use the get_*_violations tools or building_compliance_summary after resolving.",
+        "same property. Addresses need a house number and street, and a borough is strongly recommended; an address that does not match " +
+        "the closest NYC address found returns an error showing the candidate instead of a building. " +
+        "Not for fetching violations: use the get_*_violations tools or building_compliance_summary after resolving.",
       inputSchema: { address: addressSchema.optional(), bin: binSchema.optional(), bbl: bblSchema.optional() },
       annotations: READ_ONLY,
     },
