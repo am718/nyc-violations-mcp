@@ -32,6 +32,7 @@ export interface JsonResult {
 /** GET JSON with a TTL cache, 1 req/sec spacing, timeout, and retry with exponential backoff. */
 export class HttpClient {
   private lastRequestAt = 0;
+  private gate: Promise<void> = Promise.resolve();
   private sleep: (ms: number) => Promise<void>;
   private now: () => number;
 
@@ -84,9 +85,22 @@ export class HttpClient {
     );
   }
 
+  /**
+   * Reserve the next request slot. Callers are chained one behind the other, so concurrent calls (parallel tool calls, retries
+   * after a backoff) are spaced at least minIntervalMs apart. Reading lastRequestAt, sleeping and writing it back as three
+   * separate steps would let callers that start together compute the same wait and all send at once.
+   */
   private async throttle(): Promise<void> {
-    const wait = this.lastRequestAt + this.deps.settings.minIntervalMs - this.now();
-    if (wait > 0) await this.sleep(wait);
-    this.lastRequestAt = this.now();
+    const previous = this.gate;
+    let release!: () => void;
+    this.gate = new Promise<void>((resolve) => (release = resolve));
+    try {
+      await previous;
+      const wait = this.lastRequestAt + this.deps.settings.minIntervalMs - this.now();
+      if (wait > 0) await this.sleep(wait);
+      this.lastRequestAt = this.now();
+    } finally {
+      release();
+    }
   }
 }
