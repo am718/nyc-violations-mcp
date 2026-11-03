@@ -14,32 +14,12 @@ import { otherBinsOnLot } from "../src/resolve.js";
 import { resolvePropertyTool } from "../src/tools/resolve.js";
 import { buildingComplianceSummary } from "../src/tools/summary.js";
 import { getDobViolations, getEcbViolations, getHpdViolations } from "../src/tools/violations.js";
+import { redact } from "./redact.js";
 
 const dir = join(process.cwd(), "tests", "fixtures", "http");
 mkdirSync(dir, { recursive: true });
 for (const f of readdirSync(dir)) if (f.endsWith(".json")) unlinkSync(join(dir, f)); // start clean: stale fixtures must not linger
 
-/** Replace respondent identity fields (ECB: names/addresses of people and businesses) with placeholders before saving. */
-export function redact(body: string): string {
-  let json: unknown;
-  try {
-    json = JSON.parse(body);
-  } catch {
-    return body;
-  }
-  if (!Array.isArray(json)) return body;
-  for (const row of json) {
-    if (typeof row !== "object" || row === null) continue;
-    for (const k of Object.keys(row)) {
-      const r = row as Record<string, unknown>;
-      if (k.startsWith("respondent_")) r[k] = k === "respondent_name" ? "RESPONDENT NAME REDACTED" : "REDACTED";
-      // Staff and professionals sometimes type a certificate/licence number (and a name) into free text: blank the number.
-      // Names in free text cannot be found by a rule: review newly recorded descriptions by hand (see docs/DATA.md).
-      else if (typeof r[k] === "string") r[k] = (r[k] as string).replace(/\b(CERT|LIC)(\s*#?\s*)\d{4,}/gi, "$1$2REDACTED");
-    }
-  }
-  return JSON.stringify(json);
-}
 export const fixtureName = (url: string) => createHash("sha1").update(url).digest("hex").slice(0, 16) + ".json";
 
 const settings = { ...loadSettings({}), appToken: undefined };

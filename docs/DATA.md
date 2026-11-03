@@ -137,6 +137,12 @@ They were reviewed for personal data: of 37 unusual words (5+ letters, not in a 
 code-like system fields (violation type/category, law section), 8 are typos or inflections of dictionary words, and 10 were redacted
 from the free-form fields. One disposition comment held a private person's name next to a certificate number; both were redacted,
 as were two certificate/licence numbers. Staff initials ("DELETED BY XX") and business or street names from public records were kept.
-`scripts/record-fixtures.ts` blanks `CERT#`/`LIC#` numbers when recording, but names cannot be found by a rule: **after re-recording,
-review new free text by hand** before committing.
+A second review (2026-11-03, after the gate review) found that one comment still had two words (2 and 4 letters, not dictionary words)
+between "BY" and the redacted name, in 2 places in 1 fixture. They were redacted in the tree and in all history. A search of all
+fixtures and evidence for letters next to REDACTED found 0 directly adjacent and no other name-like word before it (the rest are
+"NAME", "CERT", ordinary words and escape-sequence debris).
+`scripts/redact.ts` (used by `scripts/record-fixtures.ts`) blanks `CERT#`/`LIC#` numbers and any words signed between "BY" and a
+CERT/LIC marker when recording, and `tests/redaction.test.ts` fails if a committed fixture or evidence file has letters next to
+REDACTED, words left between BY and CERT/LIC, a certificate number or a non-placeholder respondent value. Names in other positions
+cannot be found by a rule: **after re-recording, review new free text by hand** before committing.
 `docs/evidence/inspector-*.json` is raw live output of `scripts/inspector-check.sh`: apply the same manual review after regenerating it.
