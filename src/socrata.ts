@@ -130,7 +130,13 @@ export const queries = {
   },
   /** Distinct BINs on a lot, per dataset (used to report other buildings on the same lot). */
   distinctBinsOnLot(dataset: "dob" | "hpd", bbl: string): SoqlQuery {
-    return { dataset, select: "count(distinct bin) as n", where: locatorClause(dataset, { by: "bbl", bbl }), limit: 1 };
+    // Borough placeholder BINs (X000000 = "building unknown") are not buildings; verified live that `bin NOT LIKE '_000000'` works on both datasets.
+    return {
+      dataset,
+      select: "count(distinct bin) as n",
+      where: and(locatorClause(dataset, { by: "bbl", bbl }), "bin NOT LIKE '_000000'"),
+      limit: 1,
+    };
   },
   /** BIN -> lot (DOB rows carry boro/block/lot and address). */
   dobLotForBin(bin: string): SoqlQuery {

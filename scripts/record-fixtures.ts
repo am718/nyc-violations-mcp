@@ -10,6 +10,7 @@ import { Cache } from "../src/cache.js";
 import { loadSettings } from "../src/config.js";
 import { HttpClient } from "../src/http.js";
 import { SocrataClient } from "../src/socrata.js";
+import { otherBinsOnLot } from "../src/resolve.js";
 import { resolvePropertyTool } from "../src/tools/resolve.js";
 import { buildingComplianceSummary } from "../src/tools/summary.js";
 import { getDobViolations, getEcbViolations, getHpdViolations } from "../src/tools/violations.js";
@@ -72,6 +73,8 @@ await attempt("matching pair", () => resolvePropertyTool(r, { bin: ESB.bin, bbl:
 for (const a of ["123 Fake Street, Queens", "Lot 1 Block 1, Manhattan", "9999 5th Ave, Manhattan", "350 FIFTH AVE", "2 St Marks Pl, Manhattan", "1 Centre St, Manhattan"]) {
   await attempt(`address ${a}`, () => resolvePropertyTool(r, { address: a }));
 }
+// Lot with one real building plus borough placeholder BIN 2000000 (120 HPD rows): the placeholder must not count as a building
+await attempt("lot with placeholder bin", () => otherBinsOnLot(r, "2048530011"));
 await attempt("no match", () => resolvePropertyTool(r, { address: "zzzz nowhere qq" }));
 await attempt("injection address", () => resolvePropertyTool(r, { address: "1 Main St'; DROP TABLE x; -- $where=1=1" }));
 // Multi-building lot (Stuyvesant Town: ~35 BINs on one lot)

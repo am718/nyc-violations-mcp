@@ -5,7 +5,8 @@ import { isPlaceholderBbl, isPlaceholderBin, isRealBin, joinBbl } from "../src/i
 import { createServer } from "../src/server.js";
 import { locatorClause } from "../src/socrata.js";
 import { resolvePropertyTool } from "../src/tools/resolve.js";
-import { makeResolver, stubFetch } from "./helpers.js";
+import { otherBinsOnLot } from "../src/resolve.js";
+import { fixtureFetch, makeResolver, stubFetch } from "./helpers.js";
 
 const PLACEHOLDERS = ["1000000", "2000000", "3000000", "4000000", "5000000"];
 
@@ -128,5 +129,20 @@ describe("fix 1 (BBL): placeholder BBLs (block 00000/99999 or lot 0000) are reje
   it("GeoSearch result with a placeholder BBL but a real BIN is refused as 'not a specific building' (synthetic)", async () => {
     const geo = { features: [{ properties: { label: "1 EXAMPLE STREET, New York, NY", housenumber: "1", street: "EXAMPLE STREET", borough: "Manhattan", confidence: 1, match_type: "exact", addendum: { pad: { bin: "1015862", bbl: "1000000000" } } } }] };
     await expect(resolvePropertyTool(makeResolver(stubFetch([geo])), { address: "1 Example St, Manhattan" })).rejects.toThrow(/not a specific building/);
+  });
+});
+
+describe("other_bins_on_lot does not count borough placeholder BINs as buildings", () => {
+  // Recorded live 2026-11-02: lot 2048530011 has HPD rows for the real BIN 2130638 (13) and for placeholder BIN 2000000 (120); no DOB rows.
+  it("BIN 2130638 / lot 2048530011 has 0 other buildings (recorded)", async () => {
+    const calls: string[] = [];
+    const out = await otherBinsOnLot(makeResolver(fixtureFetch(calls)), "2048530011");
+    expect(out.count).toBe(0);
+    expect(calls).toHaveLength(2);
+    for (const u of calls) expect(decodeURIComponent(u.replace(/\+/g, " "))).toContain("bin NOT LIKE '_000000'");
+  });
+  it("the count query keeps a real second building (synthetic count of 2 distinct real BINs -> 1 other)", async () => {
+    const out = await otherBinsOnLot(makeResolver(stubFetch([[{ n: "2" }], [{ n: "1" }]])), "1009720001");
+    expect(out.count).toBe(1);
   });
 });
