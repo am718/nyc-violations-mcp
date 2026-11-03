@@ -69,12 +69,11 @@ export async function resolveAddress(r: Resolver, address: string): Promise<Prop
     const pad = isRow(props.addendum) && isRow((props.addendum as Record<string, unknown>).pad)
       ? ((props.addendum as Record<string, unknown>).pad as Record<string, unknown>)
       : undefined;
-    // The first digit of a BIN is its borough code, so a candidate without a borough name can still be checked.
-    const binBorough = typeof pad?.bin === "string" && /^[1-5]\d{6}$/.test(pad.bin) ? BOROUGHS[pad.bin[0]!] ?? null : null;
     const check = checkAddress(address, {
       housenumber: typeof props.housenumber === "string" ? props.housenumber : null,
       street: typeof props.street === "string" ? props.street : null,
-      borough: typeof props.borough === "string" ? props.borough : binBorough,
+      borough: typeof props.borough === "string" ? props.borough : null,
+      bin: typeof pad?.bin === "string" ? pad.bin : null,
       postalcode: typeof props.postalcode === "string" ? props.postalcode : null,
     });
     candidates.push({ props, pad, check });

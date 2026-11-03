@@ -226,4 +226,12 @@ describe("checkAddress on recorded candidates: abbreviations and case", () => {
     expect(checkAddress("350 5th Ave, 10118", noPlace).reasons).toEqual(["the match has no zip code to compare"]);
     expect(checkAddress("350 5th Ave", noPlace).ok).toBe(true); // nothing typed to confirm
   });
+
+  it("the candidate's borough is normalized, filled from the BIN digit when missing, and must agree with the BIN (synthetic)", () => {
+    const c = { housenumber: "1", street: "EAST 161 STREET", postalcode: "10451" };
+    expect(checkAddress("1 E 161st St, Bronx", { ...c, borough: "The Bronx", bin: "2114490" }).ok).toBe(true);
+    expect(checkAddress("1 E 161st St, Bronx", { ...c, borough: null, bin: "2114490" }).ok).toBe(true);
+    expect(checkAddress("1 E 161st St, Bronx", { ...c, borough: "Bronx", bin: "3114490" }).reasons).toEqual(["the match's borough and BIN disagree"]);
+    expect(checkAddress("1 E 161st St, Manhattan", { ...c, borough: null, bin: "2114490" }).reasons).toEqual(["the borough differs"]);
+  });
 });

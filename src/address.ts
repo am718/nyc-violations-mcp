@@ -13,6 +13,8 @@ export interface Candidate {
   street?: string | null;
   borough?: string | null;
   postalcode?: string | null;
+  /** The candidate's BIN, if any: its first digit is the borough code, which must agree with the borough name. */
+  bin?: string | null;
 }
 
 export interface AddressCheck {
@@ -96,6 +98,8 @@ export function boroughOf(word: string): string | null {
   }
   return null;
 }
+
+const BIN_BOROUGH: Record<string, string> = { "1": "Manhattan", "2": "Bronx", "3": "Brooklyn", "4": "Queens", "5": "Staten Island" };
 
 const isZip = (t: string) => /^\d{5}(-\d{4})?$/.test(t);
 const isHouseNumber = (t: string) => /^\d+(-\d+)?[a-z]?$/i.test(t);
@@ -207,10 +211,15 @@ export function checkAddress(input: string, cand: Candidate): AddressCheck {
     reasons.push(want.type === null ? `no street type was given (the match is a ${got.type ?? "street"})` : "the street type differs");
   }
 
+  // The candidate's borough: its name normalized ("The Bronx" -> Bronx), else the BIN's borough digit. If both exist they must agree.
+  const named = cand.borough ? (boroughsIn(norm(cand.borough).split(" ").filter(Boolean))[0] ?? cand.borough) : null;
+  const fromBin = cand.bin && /^[1-5]\d{6}$/.test(cand.bin) ? BIN_BOROUGH[cand.bin[0]!]! : null;
+  if (named && fromBin && named !== fromBin) reasons.push("the match's borough and BIN disagree");
+  const candBorough = named ?? fromBin;
   // A typed borough or zip must be confirmed by the candidate: a candidate without one cannot be checked, so it is refused.
   if (typed.boroughs.length > 1) reasons.push("more than one borough was given");
-  else if (typed.borough && !cand.borough) reasons.push("the match has no borough to compare");
-  else if (typed.borough && typed.borough !== cand.borough) reasons.push("the borough differs");
+  else if (typed.borough && !candBorough) reasons.push("the match has no borough to compare");
+  else if (typed.borough && typed.borough !== candBorough) reasons.push("the borough differs");
   if (typed.zip && !cand.postalcode) reasons.push("the match has no zip code to compare");
   else if (typed.zip && typed.zip !== cand.postalcode) reasons.push("the zip code differs");
 
