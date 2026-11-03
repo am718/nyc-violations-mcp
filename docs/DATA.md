@@ -129,3 +129,13 @@ Descriptions, comments and category text come from public records. They are trun
 ## Caveats
 - Open data lags official systems (DOB BIS/DOB NOW, HPD, OATH). Counts can differ from the city's live property pages.
 - Dataset IDs and fields can change; re-verify before relying on them.
+
+## Fixture free text (reviewed 2026-11-02)
+
+Recorded fixtures keep the agencies' free-text fields (descriptions, disposition comments) because tests depend on their wording.
+They were reviewed for personal data: of 37 unusual words (5+ letters, not in a dictionary) in 171 distinct records, 19 occur only in
+code-like system fields (violation type/category, law section), 8 are typos or inflections of dictionary words, and 10 were redacted
+from the free-form fields. One disposition comment held a private person's name next to a certificate number; both were redacted,
+as were two certificate/licence numbers. Staff initials ("DELETED BY XX") and business or street names from public records were kept.
+`scripts/record-fixtures.ts` blanks `CERT#`/`LIC#` numbers when recording, but names cannot be found by a rule: **after re-recording,
+review new free text by hand** before committing.

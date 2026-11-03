@@ -31,7 +31,11 @@ export function redact(body: string): string {
   for (const row of json) {
     if (typeof row !== "object" || row === null) continue;
     for (const k of Object.keys(row)) {
-      if (k.startsWith("respondent_")) (row as Record<string, unknown>)[k] = k === "respondent_name" ? "RESPONDENT NAME REDACTED" : "REDACTED";
+      const r = row as Record<string, unknown>;
+      if (k.startsWith("respondent_")) r[k] = k === "respondent_name" ? "RESPONDENT NAME REDACTED" : "REDACTED";
+      // Staff and professionals sometimes type a certificate/licence number (and a name) into free text: blank the number.
+      // Names in free text cannot be found by a rule: review newly recorded descriptions by hand (see docs/DATA.md).
+      else if (typeof r[k] === "string") r[k] = (r[k] as string).replace(/\b(CERT|LIC)(\s*#?\s*)\d{4,}/gi, "$1$2REDACTED");
     }
   }
   return JSON.stringify(json);
