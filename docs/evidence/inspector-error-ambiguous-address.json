@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "\"Borough Hall\" matches 4 different places: \"BOROUGH HALL, Brooklyn, NY, USA\" (Brooklyn), bin \"3000256\"; \"BOROUGH HALL, Bronx, NY, USA\" (Bronx), bin \"2002869\"; \"BOROUGH HALL, Kew Gardens, NY, USA\" (Queens), bin \"4052812\"; \"BOROUGH HALL, Staten Island, NY, USA\" (Staten Island), bin \"5000063\". None was used. Add the borough (e.g. \"<house number> <street>, Manhattan\") or zip code, or call resolve_property with the bin you mean."
+    }
+  ],
+  "isError": true
+}

@@ -169,4 +169,6 @@ fixtures and evidence for letters next to REDACTED found 0 directly adjacent and
 CERT/LIC marker when recording, and `tests/redaction.test.ts` fails if a committed fixture or evidence file has letters next to
 REDACTED, words left between BY and CERT/LIC, a certificate number or a non-placeholder respondent value. Names in other positions
 cannot be found by a rule: **after re-recording, review new free text by hand** before committing.
-`docs/evidence/inspector-*.json` is raw live output of `scripts/inspector-check.sh`: apply the same manual review after regenerating it.
+`docs/evidence/inspector-*.json` is raw live output of `scripts/inspector-check.sh`: apply the same manual review after regenerating it. Regenerating it on 2026-11-03 brought back two words that had been redacted (the live data still has them); they were
+redacted again, and `tests/redaction.test.ts` now fails if any word redacted in a fixture appears unredacted in the same text in
+the evidence.

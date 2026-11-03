@@ -43,4 +43,42 @@ describe("committed fixtures and evidence", () => {
       expect(hits).toEqual([]);
     });
   }
+
+  it("a word redacted in a fixture is also redacted wherever the same text appears in evidence (evidence is raw tool output)", () => {
+    // Anchors: up to 24 plain characters on each side of REDACTED in a fixture string field; the same anchors in an evidence
+    // file must surround REDACTED too. Catches redactions lost when docs/evidence is regenerated from live data.
+    const ws = (t: string) => t.replace(/\s+/g, " ");
+    const safe = /^[A-Za-z0-9 .,:;/()&-]*$/;
+    const esc = (t: string) => t.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
+    const evidence = files.filter((f) => f.includes(`${join("docs", "evidence")}`)).map((f) => ({ f, t: ws(text(f)) }));
+    const leaks: string[] = [];
+    let anchors = 0;
+    for (const f of files.filter((x) => x.includes(join("fixtures", "http")))) {
+      let rows: unknown;
+      try {
+        rows = JSON.parse((JSON.parse(text(f)) as { body: string }).body);
+      } catch {
+        continue;
+      }
+      if (!Array.isArray(rows)) continue;
+      for (const row of rows as Record<string, unknown>[]) {
+        for (const [k, v] of Object.entries(row ?? {})) {
+          if (k.startsWith("respondent_") || typeof v !== "string" || !v.includes("REDACTED")) continue;
+          const t = ws(v);
+          for (let i = t.indexOf("REDACTED"); i >= 0; i = t.indexOf("REDACTED", i + 1)) {
+            let before = t.slice(Math.max(0, i - 24), i);
+            while (before && !safe.test(before)) before = before.slice(1);
+            let after = t.slice(i + 8, i + 32);
+            while (after && !safe.test(after)) after = after.slice(0, -1);
+            if (before.length < 8 || after.length < 8) continue;
+            anchors++;
+            const re = new RegExp(esc(before) + "([A-Za-z0-9#'.-]+)" + esc(after), "g");
+            for (const e of evidence) for (const m of e.t.matchAll(re)) if (m[1] !== "REDACTED") leaks.push(`${e.f.slice(root.length + 1)} (a ${m[1]!.length}-letter word)`);
+          }
+        }
+      }
+    }
+    expect(anchors).toBeGreaterThan(0);
+    expect(leaks).toEqual([]);
+  });
 });
