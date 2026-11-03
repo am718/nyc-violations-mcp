@@ -33,7 +33,7 @@ characters, summaries before details); errors say what a valid value looks like 
 
 ## Install and run (local)
 
-Requires Node 20+. Not published to npm: clone/copy the folder, then:
+Requires **Node 22 or newer** (`engines: >=22`). Tested on 2026-11-02: Node 22.22.0 and 24.22.2 (build, 290 tests and server start pass). **Node 20.20.2 does not work**: the SQLite cache module (`better-sqlite3` 13) crashes with a segfault and the test runner (vitest 5) does not support it. Other 22.x/24.x/later versions are UNVERIFIED (vitest declares `^22.12 || ^24 || >=26`; Node 25 was not tested). Not published to npm: clone/copy the folder, then:
 
 ```bash
 npm install
