@@ -16,7 +16,7 @@ zeros for HPD, 251 offline vitest tests with recorded fixtures, inspector script
 
 ```bash
 npm install && npm run build
-npm test                           # 251 tests, offline; tests/setup-no-network.ts makes any global fetch throw
+npm test                           # builds, then 295 tests, offline; tests/setup-no-network.ts makes any global fetch throw
 bash scripts/inspect.sh            # Inspector web UI
 bash scripts/inspect.sh --cli --method tools/list
 bash scripts/inspector-check.sh    # all 5 tools via Inspector CLI, LIVE network, writes docs/evidence/inspector-*.json
@@ -34,7 +34,7 @@ Server entry: `node dist/src/index.js` (note `dist/src/`, because tsconfig `root
 | GeoSearch available and returns BIN/BBL (DATA.md) | `curl "https://geosearch.planninglabs.nyc/v2/search?text=350%205th%20Ave%20Manhattan&size=1"`; recorded in `tests/fixtures/http/` |
 | GeoSearch cannot resolve a bare BIN/BBL (design reason for DOB/HPD lookup) | Tested live during build with `text=1008350041`, `text=1015862`: 0 features. Not recorded as a fixture. |
 | DOB/ECB `lot` is 5-digit padded; BBL lot is 4-digit (DATA.md) | Live `curl` with `lot='00041'` (matched); bug found and fixed in `src/ids.ts` `joinBbl` / `src/socrata.ts` `locatorClause`. Tested in `tests/tools.test.ts` "locatorClause only ever embeds validated digits" |
-| 5 tools work through the MCP Inspector | `scripts/inspector-check.sh`; raw outputs in `docs/evidence/inspector-*.json` (CLI mode only; the web UI was not opened: **UNVERIFIED**) |
+| 5 tools work through the MCP Inspector | `scripts/inspector-check.sh`; raw outputs in `docs/evidence/inspector-*.json` (CLI mode; the Inspector web UI v2.13.0 was also driven headlessly in the final review: all 5 tools OK, placeholder BIN rejected; see `docs/reviews/REVIEW_REPORT_FINAL.md`) |
 | Tool descriptions say when / when not to use | `docs/evidence/inspector-tools-list.json`; test "lists the 5 read-only tools with WHEN-to-use descriptions" |
 | Responses carry source, dataset id, fetched_at, notice | `src/format.ts` `envelope`; tests "resolves an address..." and "summary shape"; evidence files |
 | HPD empty -> coverage note, never bare 0; Empire State fixture test | `tests/tools.test.ts` "coverage, not zero (HPD)" (3 tests); `src/tools/violations.ts` `HPD_COVERAGE_NOTE`; `src/tools/summary.ts` |
@@ -49,11 +49,11 @@ Server entry: `node dist/src/index.js` (note `dist/src/`, because tsconfig `root
 | Timeout / retry / empty / malformed rows | tests "resilience (synthetic stubbed responses)" (synthetic data, labeled in the test names) |
 | Cache TTL and 1 req/sec spacing | tests "cache and rate limiter" (fake clock, injected sleep) |
 | Tests need no network | `tests/setup-no-network.ts` + `vitest.config.ts` |
-| 10-building validation, all matched | `docs/VALIDATION.md`, `docs/evidence/validation-output.md`, `scripts/validate.ts`. **It is an API-to-API cross-check, not the web UI; web-UI comparison is UNVERIFIED** |
+| 10-building validation, all matched | `docs/VALIDATION.md`, `docs/evidence/validation-output.md`, `scripts/validate.ts`. **It is an API-to-API cross-check. The final review compared the Open Data web UI on 8 searches: the UI search is full text and equals the API `$q` count in 8 of 8 (it differs from an exact BIN filter in 6 of 8, as documented). Re-run after Fixes 3: see section 9** |
 | README config works in Claude Code | Same JSON shape loaded with `claude -p --mcp-config ... --strict-mcp-config`; tool was called successfully (`docs/evidence/conversation-*.txt`). Persistent install via `claude mcp add` **UNVERIFIED**; the project-scoped `.mcp.json` path showed "Pending approval" and was not approved |
 | README config works in Claude Desktop | **UNVERIFIED** (not tested) |
 | Example conversations are real output | `docs/evidence/conversation-1.txt`, `-2.txt` (Claude Code `-p --model sonnet`). Which model the `sonnet` alias resolved to is **UNVERIFIED** |
-| App token support (`SOCRATA_APP_TOKEN` -> `X-App-Token` header, Socrata host only) | `src/http.ts` line ~42. **UNVERIFIED** with a real token (none used; never printed). Not covered by a test |
+| App token support (`SOCRATA_APP_TOKEN` -> `X-App-Token` header, Socrata host only) | `src/http.ts` line ~42. **UNVERIFIED** with a real token (none used; never printed). The header logic is unit tested with a fake token |
 | Comparison with other servers (README, docs/COMPARISON.md) | Only nyc-property-intel was read (GitHub API/raw files, not cloned or run). All other entries are from search-result listings (**UNVERIFIED** beyond that) |
 | No secrets in repo | `.env.example` has an empty value; grep of the tree for token/secret/password/api key shows only variable names and docs |
 
@@ -84,10 +84,10 @@ returned as data, and accompanied by the notice. There is no sanitization of ins
 3. Multi-building lots: the summary now counts all three agencies by one BIN and reports `footprint` + an approximate `other_bins_on_lot` (max distinct BINs seen in DOB/HPD, minus 1), so it can undercount buildings with no records in either dataset. A lot like Stuyvesant Town is still only covered one building at a time. (Fix 1)
 4. BIN/BBL-only resolution depends on that property having DOB or HPD rows; otherwise the user is told to use the address.
 5. The BIN/BBL "agree" check relies on DOB lot data (and HPD); it does not consult an authoritative PAD source.
-6. GeoSearch match quality: confidence is reported (0.8 for the Empire State Building) but low-confidence matches are not rejected.
+6. GeoSearch match quality: its confidence (0.8) is the same for right and wrong matches, so it is not used; the tool compares the typed house number, street, borough and zip with the match and refuses a different building (Fixes 3, `docs/DATA.md`). The street-name normalization is a small table of abbreviations; a spelling it does not know produces an error that shows the candidate and its BIN, not a wrong building.
 7. Rate limiter is per-process; two server instances can exceed 1 req/sec in aggregate. Worst-case latency with retries is long (3 attempts x 15 s per request).
-8. Fixture lookup is keyed by exact request URL: changing the query builder requires re-recording (`record-fixtures`). Fixtures are re-recorded from live APIs; ECB `respondent_*` fields are redacted at record time (free-text descriptions are not). All commits, including the original ones, now hold redacted fixtures (history was rewritten and scrubbed).
-9. `src/index.ts` (cache fallback, wiring) is not unit tested; exercised only by Inspector/Claude Code runs.
+8. Fixture lookup is keyed by exact request URL: changing the query builder requires re-recording (`record-fixtures`). Fixtures are re-recorded from live APIs; ECB `respondent_*` fields and certificate/licence numbers are redacted at record time; free-text descriptions were reviewed once by hand (Fixes 3) and must be reviewed again after re-recording. All commits, including the original ones, now hold redacted fixtures (history was rewritten and scrubbed).
+9. `src/index.ts` is covered by `tests/startup.test.ts` (built server over real stdio, cache fallback, stdout hygiene); the wiring to a real MCP client is exercised only by Inspector runs (Claude Code and Claude Desktop runs are UNVERIFIED).
 10. SDK validation errors for bad input arrive as MCP error -32602 text ("... at bin"), not as the server's own wording; the zod messages are included.
 11. `status` filter lists exclude `unknown`-status rows (counts in the summary include an `unknown` bucket when present).
 12. Validation counts are independent of the builder but come from the same backend as the web UI; they cannot reveal upstream data problems.
@@ -96,10 +96,10 @@ returned as data, and accompanied by the notice. There is no sanitization of ins
 
 ## 6. Unfinished / not done
 
-- Claude Desktop test; `claude mcp add` persistent install test; Inspector web UI session (CLI only).
-- Visual comparison against the Open Data web UI and official city systems (manual steps are in `docs/VALIDATION.md`).
+- Claude Desktop test; `claude mcp add` persistent install test (UNVERIFIED). The Inspector web UI session was done in the final review (v2.13.0, all 5 tools, plus a rejected placeholder BIN).
+- Comparison against the official city systems (DOB BIS / DOB NOW, HPD Online, OATH) is UNVERIFIED. The Open Data web UI comparison was done in the final review (8 searches on 5 buildings: the UI search is full text and equals the API's `$q` count in 8 of 8; see `docs/VALIDATION.md`).
 - App-token path never run with a real token (header behavior is unit tested with a fake token).
-- (Done) Git history rewritten: noreply author/committer on every commit; old fixtures scrubbed. Verified with the searches in the session transcript.
+- (Done) Git history rewritten: noreply author/committer on every commit; old fixtures scrubbed. Verified with the history searches listed in the final fix report.
 - HPD list pagination beyond `limit` (max 100) is not offered (by design: summaries first), so full histories are not retrievable.
 - Dataset `rowsUpdatedAt` is recorded in DATA.md as of 2026-11-01 only; no freshness check at runtime.
 
@@ -118,9 +118,9 @@ Commits are listed oldest to newest. The hashes are those of the **rewritten** h
 | m4 case-sensitive status enum | Deliberately not fixed (reason was wrong; see Fixes 2) | n/a | The original reason ("a case-insensitive pre-process would erase the `enum` from the JSON schema") was incorrect: `z.preprocess(lowercase, z.enum(...))` keeps the enum in the published schema. Only a `transform(...).pipe(...)` form loses it. Fixed in the second pass |
 | m5 loose coercion (arrays accepted; unknown keys ignored) | Deliberately not fixed | n/a | Harmless (verified the emitted query is unchanged); the SDK builds a non-strict object from the shape, and rejecting arrays would also require dropping the clean JSON schema |
 | m6 Retry-After ignored; per-process limiter; no token test; index.ts untested | Partly fixed | `56f61fd` | Retry-After honored (capped at 10 s) and tested; X-App-Token header unit test (fake token). Not fixed: per-process limiter (documented), `src/index.ts` wiring untested (listed above), worst-case latency (documented) |
-| m7 summary performance | Mitigated | `56f61fd` | Summary makes 13 upstream requests (measured 12.1 s, later 17.9-23.7 s cold; at least ~12 s because of the 1 req/s limit); tool description says so and that results are cached for an hour |
+| m7 summary performance | Mitigated | `56f61fd` | Summary made 13 upstream requests then (superseded in Fixes 3: 12 to 14 depending on the building); tool description says so and that results are cached for an hour |
 
-Re-verification after the fixes: `npm test` (64 passing, no-network guard on), `scripts/inspector-check.sh` (all 5 tools, evidence refreshed), `npm run validate`
+Re-verification after the fixes: `npm test` (64 passing at that time, no-network guard on), `scripts/inspector-check.sh` (all 5 tools, evidence refreshed), `npm run validate`
 (10 of 10 buildings match independent direct queries, by BIN; `docs/VALIDATION.md` regenerated; web-UI comparison still UNVERIFIED), example conversations regenerated
 with the fixed server (`docs/evidence/conversation-*.txt`).
 
@@ -132,19 +132,34 @@ The session-link trailer is no longer added to commits; the Co-Authored-By line 
 | Finding | Status | Commit | What changed / evidence |
 |---|---|---|---|
 | M1 placeholder BINs accepted (and the analogous BBL placeholders) | Fixed | `7100bf1` Fix 1 | `X000000` BINs rejected in every tool, in GeoSearch/DOB-derived values and in the query builder, with "use the address". BBL placeholders verified live (DOB 5,842 rows with block/lot 00000 across 811 BINs; ECB 178) and rejected the same way (block 00000/99999 or lot 0000). `tests/placeholder-bins.test.ts` |
-| M2 session link in all commit messages | Fixed | whole history (rewrite) | Every `session-link:` trailer removed from all commits; author and committer stay the noreply identity. Verified by the history search commands in the session transcript |
+| M2 session link in all commit messages | Fixed | whole history (rewrite) | Every session-link trailer removed from all commits; author and committer stay the noreply identity. Verified by the history search commands in the session transcript |
 | Local paths, username, session ids in docs and history | Fixed | `f2aa80c` Fix 3 + history rewrite | Review reports moved to `docs/reviews/` and linked; absolute paths and scratch directory references removed from the tree and from every commit; an accidentally tracked `.vitest/` output file (it held absolute paths) removed and ignored |
 | m1 `status` enum rationale wrong | Fixed | `0781d03` Fix 4 | `z.preprocess(lowercase, z.enum(...))`: any letter case accepted, enum still published (verified through the MCP SDK `tools/list`). The wrong rationale in the Fixes table row m4 above is corrected |
 | m2 impossible dates pass the filter | Fixed | `0781d03` Fix 4 | SoQL now requires a real month/day (10 more DOB rows excluded live, e.g. `19108124`); Feb 29 in a non-leap year (3 DOB rows) is caught in code; both count toward `undated_excluded` (verified live for BIN 1081244) |
 | m3 `limit` accepts odd values | Fixed | `0781d03` Fix 4 | Only integers or plain digit strings 1-100; rejects booleans, hex, floats, exponents, signs, padding, arrays |
 | 127 hostile inputs only existed in a scratch script | Fixed | `0781d03` Fix 4 | `tests/hostile-inputs.test.ts`: 160 cases with expected outcomes and a strict URL allowlist |
-| m4 latency / request counts inconsistent | Fixed | `7fc3fdb` Fix 6 | Summary = 13 upstream requests at 1 req/s (at least ~12 s cold); measured 12.1 s earlier and 17.9-23.7 s on re-measure; stated in the tool description, README and this file |
+| m4 latency / request counts inconsistent | Fixed | `7fc3fdb` Fix 6 | Summary = 13 upstream requests then (superseded in Fixes 3: 12 to 14); measured 12.1 s earlier and 17.9-23.7 s on re-measure; stated in the tool description, README and this file |
 | m5 DOB/ECB descriptions lack the resolve_property hint | Fixed | `b107c13` Fix 5 | "Requires a BIN: if you only have an address, or are unsure of the BIN, call resolve_property first" |
 | m6 HPD schema has no `required` | Fixed (best the SDK allows) | `b107c13` Fix 5 | Published as an object with `anyOf: [{required:[bbl]},{required:[bin]}]` plus a clear runtime error; tests over the published schema |
 | m7 `REVIEW_REPORT.md` in history | Kept on purpose | `f2aa80c` | Both reports are kept under `docs/reviews/` as an honest record |
 | Web-UI full-text search note | Documented | `7fc3fdb` Fix 6 | `docs/VALIDATION.md`: UI search is full text, totals can be +1; `$q` matches the UI exactly |
 
 Still UNVERIFIED: Claude Desktop config; a live Socrata app token (header logic is unit tested with a fake token); comparison with the official city systems
-(DOB BIS/NOW, HPD Online, OATH); whether GeoSearch ever returns a placeholder BIN for a real address (guarded either way).
+(DOB BIS/NOW, HPD Online, OATH).
 
-Checklist status: see the final message in the session; this file is the evidence index.
+
+## 9. Fixes 3 (responding to [REVIEW_REPORT_FINAL.md](docs/reviews/REVIEW_REPORT_FINAL.md))
+
+| Finding | Status | Commit | What changed / evidence |
+|---|---|---|---|
+| M1 wrong addresses matched silently | Fixed | `e145856` | Verified live that GeoSearch returns `confidence 0.8`, `match_type fallback` for right and wrong matches alike (recorded in `docs/DATA.md`), so the score is not used. `src/address.ts` compares the typed house number, street (abbreviations, ordinals, directions, Saint), borough and zip with the match; a mismatch is an error showing the candidate and its BIN, never a success. "123 Fake Street, Queens", "Lot 1 Block 1, Manhattan" and "9999 5th Ave, Manhattan" fail (recorded live responses); correct addresses, abbreviations and case variants pass (37 live inputs checked, one real-world spelling "Centre St" added after the live check). If no borough/zip was typed, the match carries a note naming the borough assumed |
+| M2 rate limiter race | Fixed | `ae760d6` | Callers chained on a promise. Fake-timer tests: 5 concurrent calls start at least 1000 ms apart; retries/backoff interleaved with other callers stay spaced; a failed call does not block the queue. Real-time repro: gaps 1004, 1003, 1001, 1002 ms (was 1003, 1, 0, 0) |
+| m1 flat "13 requests" | Fixed | `a51b49f` | Measured 12 to 14 (12 Stuyvesant Town by BIN, 13 Empire State Building and BIN 2130638, 14 233 Broadway); reasons in README |
+| m2 `other_bins_on_lot` counts placeholder BINs | Fixed | `4d6674e` | `bin NOT LIKE '_000000'` in the distinct-BIN count (verified live on DOB and HPD); BIN 2130638 now reports 0 others (test with recorded counts) |
+| m3 "Node 20+" unverified | Fixed (claim was wrong) | `8abb161` | Tested Node 20.20.2 (fails: `better-sqlite3` segfault, vitest unsupported), 22.22.0 and 24.22.2 (build, 295 tests, server start pass). `engines` is `>=22`; other versions UNVERIFIED |
+| m4 partial BIN list not marked | Fixed | `9cbec91` | `other_bins_total` and `other_bins_truncated` when the list is partial (Stuyvesant Town: 8 listed, total 34) |
+| m5 docs lag | Fixed | docs commit below | README review section, UNVERIFIED lines closed with the final review's evidence, this section |
+| m6 history tidiness | Fixed | history clean-up (last commit group) | The temp-directory word and the truncated session-link string removed from the tree and all commit messages; the two review files that rode along in Fix 1 commits stay (the reports are kept on purpose) |
+| m7 test gaps / 3 mutation survivors | Fixed | `c518b8f`, `385b694` | New tests exercise each layer alone; re-ran each mutation and it now fails a test. `tests/startup.test.ts` covers the cache fallback and real-stdio start-up |
+| Fixture free text (37 unusual words) | Fixed | `85f6e21` | Counts only: 37 words; 19 in code-like system fields (kept), 8 typos/inflections (kept), 10 redacted; one private person's name plus certificate numbers redacted (tree and history). Recorder blanks `CERT#`/`LIC#`; review new free text by hand after re-recording |
+| Move `REVIEW_REPORT_FINAL.md` to `docs/reviews/` | Fixed | docs commit below | README and this file link to the new path |

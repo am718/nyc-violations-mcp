@@ -6,7 +6,7 @@ Review of `dev/nyc-violations-mcp` at commit `c80ab84`, 2026-11-02.
 
 ## Verdict: ready after fixes
 
-The core work holds up. In a clean clone the build and all 64 tests pass, and the no-network guard is real. I tried 127 hostile inputs and none changed query structure: every URL the server produced matched a strict allowlist. All 10 buildings in `docs/VALIDATION.md` match my own direct queries, using independently resolved BINs. Every numeric claim in `docs/DATA.md` that I re-checked is still true. The behavior behind every row of the Fixes table is real. Record text is returned as JSON string data and nothing in the server acts on it. The web-UI counts agree with the API, and all 5 tools run in the Inspector web UI. Privacy is clean for emails, tokens and respondent fields. Two things still need fixing before it goes public. First, the validators accept the borough placeholder BINs (`1000000`, `2000000`, `3000000`, `5000000`), and these silently resolve to an arbitrary unrelated building and return thousands of unrelated records (HPD: 7,441 for `1000000`). Second, all 15 commit messages carry a `a session link` link that would become public. Both are small to fix. Several minor items are listed below, including that the REVIEW.md rationale for not fixing the case-sensitive `status` enum is factually wrong.
+The core work holds up. In a clean clone the build and all 64 tests pass, and the no-network guard is real. I tried 127 hostile inputs and none changed query structure: every URL the server produced matched a strict allowlist. All 10 buildings in `docs/VALIDATION.md` match my own direct queries, using independently resolved BINs. Every numeric claim in `docs/DATA.md` that I re-checked is still true. The behavior behind every row of the Fixes table is real. Record text is returned as JSON string data and nothing in the server acts on it. The web-UI counts agree with the API, and all 5 tools run in the Inspector web UI. Privacy is clean for emails, tokens and respondent fields. Two things still need fixing before it goes public. First, the validators accept the borough placeholder BINs (`1000000`, `2000000`, `3000000`, `5000000`), and these silently resolve to an arbitrary unrelated building and return thousands of unrelated records (HPD: 7,441 for `1000000`). Second, all 15 commit messages carry a a session link link that would become public. Both are small to fix. Several minor items are listed below, including that the REVIEW.md rationale for not fixing the case-sensitive `status` enum is factually wrong.
 
 ## Claims table
 
@@ -73,11 +73,11 @@ None.
 - Reproduce (live): `resolve_property {bin:"1000000"}` returns `{"address":"1818 MADISON AVENUE","bin":"1000000","bbl":"1017450016"}` with no warning. `get_hpd_violations {bin:"1000000", limit:3}` returns `total_matching: 7441`. Direct counts: BIN `1000000` has DOB 96, ECB 230, HPD 7,441 rows; `2000000`: 12/69/7,891; `3000000`: 172/275/12,148; `5000000`: 4/13/829. `building_compliance_summary` would give these as a building's counts.
 - Suggested fix: reject BINs ending `000000` in `binSchema` with a message like "X000000 is a borough placeholder for an unknown building; use the street address or a BBL". Apply the same rule to GeoSearch results (`src/resolve.ts:53`) and to derived BINs (`:124`, `:131`). Add a test with a stub fixture. I could not confirm whether GeoSearch ever returns a placeholder BIN for a real address (UNVERIFIED), so the guard should be there regardless.
 
-**M2. Commit messages contain a `a session link` link on all 15 non-initial-attribution commits.**
-- Where: `git log --all --format=%B | grep -o 'a session link ]*'` returns one link, repeated 15 times (the trailer `session-link: …`). It is the only URL in any commit message.
+**M2. Commit messages contain a session link on all 15 non-initial-attribution commits.**
+- Where: searching every commit message for a URL returns one link, repeated 15 times (a session-link trailer). It is the only URL in any commit message.
 - What is wrong: making the repo public publishes a link to a private session. It is probably access-controlled, but it is not meant to be public.
-- Reproduce: `git log --all --format=%B | grep -c the session-link URL` (15).
-- Suggested fix: strip the `session-link:` trailer in another history rewrite (backups are outside the repo). Decide whether to keep the `Co-Authored-By: Claude … <noreply@anthropic.com>` line.
+- Reproduce: search every commit message for the session-link URL (15 matches).
+- Suggested fix: strip the session-link trailer in another history rewrite (backups are outside the repo). Decide whether to keep the `Co-Authored-By: Claude … <noreply@anthropic.com>` line.
 
 ### Minor
 

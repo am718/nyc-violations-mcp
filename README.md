@@ -177,9 +177,10 @@ offline tests with recorded fixtures, and an explicit query-injection test.
 
 ## Reviews and known weaknesses
 
-Two reviews are kept in the repo on purpose, including what they found wrong: [`docs/reviews/REVIEW_REPORT.md`](docs/reviews/REVIEW_REPORT.md) (the builder's
-self-review) and [`docs/reviews/REVIEW_REPORT_INDEPENDENT.md`](docs/reviews/REVIEW_REPORT_INDEPENDENT.md) (a second pass; it was run in the same session as the build, so it is
-not fully independent). [`REVIEW.md`](REVIEW.md) maps each finding to the commit that fixed it.
+Three reviews are kept in the repo on purpose, including what they found wrong: [`docs/reviews/REVIEW_REPORT.md`](docs/reviews/REVIEW_REPORT.md) (the builder's
+self-review), [`docs/reviews/REVIEW_REPORT_INDEPENDENT.md`](docs/reviews/REVIEW_REPORT_INDEPENDENT.md) (a second pass) and
+[`docs/reviews/REVIEW_REPORT_FINAL.md`](docs/reviews/REVIEW_REPORT_FINAL.md) (a third pass with mutation testing and live checks). The second and third were run in the
+same session as the build, so they are not fully independent. [`REVIEW.md`](REVIEW.md) maps each finding to the commit that fixed it.
 
 ## Development
 
