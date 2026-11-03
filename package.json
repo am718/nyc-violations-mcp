@@ -13,7 +13,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "vitest run",
+    "test": "tsc && vitest run",
     "inspect": "bash scripts/inspect.sh",
     "validate": "npm run build && node dist/scripts/validate.js"
   },
