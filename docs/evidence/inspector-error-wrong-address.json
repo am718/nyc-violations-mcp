@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "\"123 Fake Street, Queens\" does not match the closest NYC address found, \"123 WEST 123 STREET, New York, NY, USA\" (Manhattan): the street name differs; the borough differs. That building was NOT used. If it is the one you meant, call resolve_property with bin \"1087830\"; otherwise give the full address as \"<house number> <street>, <borough>\", e.g. \"350 5th Ave, Manhattan\", or pass a bin/bbl."
+    }
+  ],
+  "isError": true
+}

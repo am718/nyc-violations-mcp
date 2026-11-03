@@ -17,4 +17,5 @@ run inspector-get_hpd_violations --method tools/call --tool-name get_hpd_violati
 run inspector-building_compliance_summary --method tools/call --tool-name building_compliance_summary --tool-arg 'address=350 5th Ave, Manhattan'
 run inspector-error-bad-bin --method tools/call --tool-name get_dob_violations --tool-arg "bin=1015862' OR '1'='1"
 run inspector-error-placeholder-bin --method tools/call --tool-name get_hpd_violations --tool-arg bin=1000000
+run inspector-error-wrong-address --method tools/call --tool-name resolve_property --tool-arg "address=123 Fake Street, Queens"
 run inspector-status-any-case --method tools/call --tool-name get_dob_violations --tool-arg bin=1015862 --tool-arg status=OPEN --tool-arg limit=2

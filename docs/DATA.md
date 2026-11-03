@@ -139,3 +139,4 @@ from the free-form fields. One disposition comment held a private person's name 
 as were two certificate/licence numbers. Staff initials ("DELETED BY XX") and business or street names from public records were kept.
 `scripts/record-fixtures.ts` blanks `CERT#`/`LIC#` numbers when recording, but names cannot be found by a rule: **after re-recording,
 review new free text by hand** before committing.
+`docs/evidence/inspector-*.json` is raw live output of `scripts/inspector-check.sh`: apply the same manual review after regenerating it.
