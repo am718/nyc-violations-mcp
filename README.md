@@ -1,18 +1,41 @@
 # nyc-violations-mcp
 
 A small, read-only [MCP](https://modelcontextprotocol.io) server that lets an AI assistant look up **NYC building
-violations** (DOB, ECB and HPD) from public NYC Open Data. Safe, bounded, tested and keyless.
+violations** (DOB, ECB and HPD) from public NYC Open Data and answer with short, caveated summaries instead of raw data dumps.
+No API key needed.
 
-> Status: local, unpublished portfolio project (v0.1.0). Not on npm.
+**Who it is for:** people who track building compliance (property managers, brokers, compliance analysts, tenants) and want an
+assistant to do the first pass. It is **not** a legal or compliance determination tool (see [Data caveats](#data-caveats-and-lag)).
 
-## Problem and who it is for
+## Example (real recorded output)
+
+Asked about 350 5th Ave, Manhattan (the Empire State Building), the assistant calls `building_compliance_summary`. Selected
+fields of the actual response, recorded live on 2026-11-03 (full output:
+[`docs/evidence/inspector-building_compliance_summary.json`](docs/evidence/inspector-building_compliance_summary.json)):
+
+<!-- example-source: docs/evidence/inspector-building_compliance_summary.json (tests/readme-example.test.ts checks every value below against it) -->
+```json
+{
+  "data_quality_notes": [
+    "7 of 7 open DOB record(s) carry a \"DELETED ...\" disposition comment and are probably not outstanding (open_excluding_deleted = 0). Verify in DOB's own system."
+  ],
+  "property": { "address": "350 5 AVENUE, New York, NY, USA", "bin": "1015862", "bbl": "1008350041", "borough": "Manhattan" },
+  "agencies": {
+    "DOB": { "open": 7, "closed": 684, "open_excluding_deleted": 0 },
+    "ECB": { "open": 0, "closed": 241 },
+    "HPD": { "coverage": "no HPD coverage expected or none found" }
+  }
+}
+```
+
+In words: 7 DOB records are still marked "ACTIVE" but all 7 carry a deletion note, ECB has nothing open, and HPD has no records
+(it covers residential buildings only). Two full assistant conversations are [further down](#example-conversations-real-output).
+
+## Why
 
 Checking a building's violation history means juggling three agencies, three datasets with different status vocabularies,
-and address/BIN/BBL conversions. This server gives an assistant five narrow tools that do that correctly and return
-**short, caveated answers** instead of raw data dumps. It is aimed at people who track building compliance for properties
-(property managers, brokers, compliance analysts, tenants) and want an assistant to do the first pass.
-
-It is **not** a legal or compliance determination tool. See [Data caveats](#data-caveats-and-lag).
+and address/BIN/BBL conversions. This server gives an assistant five narrow tools that do that and return bounded,
+caveated answers.
 
 ## Tools
 
@@ -31,27 +54,30 @@ Design choices that follow Anthropic's guidance on [writing tools for agents](ht
 descriptions say when to use and when not to; responses are concise (text fields capped, whole response capped at ~12,000
 characters, summaries before details); errors say what a valid value looks like and how to recover.
 
-## Install and run (local)
+## Install and run
 
-Requires **Node 22 or newer** (`engines: >=22`). Tested on 2026-11-02: Node 22.22.0 and 24.22.2 (build, all tests and server start pass; `npm test` prints the current count). **Node 20.20.2 does not work**: the SQLite cache module (`better-sqlite3` 13) crashes with a segfault and the test runner (vitest 5) does not support it. Other 22.x/24.x/later versions are UNVERIFIED (vitest declares `^22.12 || ^24 || >=26`; Node 25 was not tested). Not published to npm: clone/copy the folder, then:
+Requires **Node 22 or newer** (`engines: >=22`). Tested: Node 22.22.0 (fresh clone, 2026-11-07) and 24.22.2 (2026-11-02): build, all tests and server start pass; `npm test` prints the current count. **Node 20.20.2 does not work**: the SQLite cache module (`better-sqlite3` 13) crashes with a segfault and the test runner (vitest 5) does not support it. Other 22.x/24.x/later versions are UNVERIFIED (vitest declares `^22.12 || ^24 || >=26`; Node 25 was not tested). Not published to npm; install from GitHub:
 
 ```bash
-npm install
+git clone https://github.com/am718/nyc-violations-mcp.git
+cd nyc-violations-mcp
+npm ci
 npm run build
-npm test            # offline: uses recorded fixtures, no network
+npm test                        # offline: uses recorded fixtures, no network
+echo "$PWD/dist/src/index.js"   # prints the absolute path to use in the configs below
 ```
 
 Optional environment variables (see `.env.example`; never commit real values):
 
 | Variable | Purpose |
 |---|---|
-| `SOCRATA_APP_TOKEN` | Optional Socrata app token for higher rate limits. The server works without it. |
+| `SOCRATA_APP_TOKEN` | Optional Socrata app token for higher rate limits. The server works without it. **UNVERIFIED** with a real token: the header logic is unit-tested with a fake value; no real token was ever used. |
 | `NYC_VIOLATIONS_CACHE_DB` | SQLite cache file (default `~/.cache/nyc-violations-mcp/cache.sqlite`; `:memory:` disables persistence) |
 | `NYC_VIOLATIONS_CACHE_TTL_SECONDS` | Cache TTL (default 3600) |
 
 ### Claude Code
 
-Add to a `.mcp.json` (or your Claude Code MCP config), replacing the path with your absolute path:
+Save this as a JSON file (or a project `.mcp.json`), replacing the path with the absolute path printed above:
 
 ```json
 {
@@ -65,13 +91,14 @@ Add to a `.mcp.json` (or your Claude Code MCP config), replacing the path with y
 }
 ```
 
-Tested: this JSON shape was loaded by Claude Code (`claude -p ... --mcp-config`) and the tools were called successfully
-(see `docs/evidence/conversation-*.txt`). The `claude mcp add` one-liner is untested: `claude mcp add nyc-violations -- node /ABSOLUTE/PATH/dist/src/index.js`.
+Tested: this JSON shape was loaded with `claude -p ... --mcp-config <file> --strict-mcp-config` and the tools were called
+successfully (2026-11-02, see `docs/evidence/conversation-*.txt`; repeated 2026-11-07). **UNVERIFIED:** loading it from a project
+`.mcp.json` (Claude Code asks for a one-time approval) and the one-liner `claude mcp add nyc-violations -- node /ABSOLUTE/PATH/TO/nyc-violations-mcp/dist/src/index.js`.
 
 ### Claude Desktop
 
-Add the same `mcpServers` block to `~/Library/Application Support/Claude/claude_desktop_config.json` and restart Claude Desktop.
-**UNVERIFIED:** not tested in Claude Desktop (same stdio server and JSON shape as above).
+Add the same `mcpServers` block, with the same absolute path, to `~/Library/Application Support/Claude/claude_desktop_config.json`
+and restart Claude Desktop. **UNVERIFIED:** not tested in Claude Desktop (same stdio server and JSON shape as above).
 
 ### MCP Inspector
 
@@ -133,7 +160,8 @@ HPD uses `Open`/`Close`. All three mappings live in `src/status.ts`.
 - Text fields (descriptions, comments, respondent names) come from public records and are untrusted: they are truncated,
   stripped of control characters, and returned as data only.
 - Validation: [`docs/VALIDATION.md`](docs/VALIDATION.md) compares summary counts for 10 buildings against independent
-  Socrata queries (all matched). It is an API-to-API check, **not** a comparison against the web UI or the official city systems.
+  Socrata queries (all matched). It is an API-to-API check. Agreement with the official city systems (DOB BIS/DOB NOW, HPD
+  Online, OATH) and with the Open Data web UI is **UNVERIFIED**.
 
 ## Safety
 
