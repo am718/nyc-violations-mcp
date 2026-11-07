@@ -105,7 +105,7 @@ and restart Claude Desktop. **UNVERIFIED:** not tested in Claude Desktop (same s
 ```bash
 npm run inspect                       # opens the Inspector UI
 scripts/inspect.sh --cli --method tools/list
-scripts/inspector-check.sh            # calls all 5 tools via the Inspector CLI against live data -> docs/evidence/
+scripts/inspector-check.sh            # all 5 tools via the Inspector CLI, live -> docs/evidence/ (redacted, then checked)
 ```
 
 ## Example conversations (real output)

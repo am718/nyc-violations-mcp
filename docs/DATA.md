@@ -165,10 +165,18 @@ A second review (2026-11-03, after the gate review) found that one comment still
 between "BY" and the redacted name, in 2 places in 1 fixture. They were redacted in the tree and in all history. A search of all
 fixtures and evidence for letters next to REDACTED found 0 directly adjacent and no other name-like word before it (the rest are
 "NAME", "CERT", ordinary words and escape-sequence debris).
-`scripts/redact.ts` (used by `scripts/record-fixtures.ts`) blanks `CERT#`/`LIC#` numbers and any words signed between "BY" and a
-CERT/LIC marker when recording, and `tests/redaction.test.ts` fails if a committed fixture or evidence file has letters next to
-REDACTED, words left between BY and CERT/LIC, a certificate number or a non-placeholder respondent value. Names in other positions
-cannot be found by a rule: **after re-recording, review new free text by hand** before committing.
-`docs/evidence/inspector-*.json` is raw live output of `scripts/inspector-check.sh`: apply the same manual review after regenerating it. Regenerating it on 2026-11-03 brought back two words that had been redacted (the live data still has them); they were
-redacted again, and `tests/redaction.test.ts` now fails if any word redacted in a fixture appears unredacted in the same text in
-the evidence.
+`scripts/redact.ts` is the one rule set for fixtures and evidence. When recording (`scripts/record-fixtures.ts`) it replaces
+`respondent_*` fields with placeholders, blanks `CERT#`/`LIC#` numbers and any words signed between "BY" and a CERT/LIC marker,
+and replaces every word on the hand-redaction list, stored only as truncated SHA-256 hashes (`REDACTED_WORD_HASHES`), never
+as words. The list was built on 2026-11-07 by aligning the live records behind the committed fixtures with the redacted
+fixtures. It holds 9 distinct words; the review above counted 10 redactions, and one of the 17 redacted fields belongs to a
+record that is no longer in the live data, so its word could not be recovered (it also cannot come back from today's data).
+Redacting the live records with the list reproduced the other 16 fields exactly, and all 746 string fields of those records
+came out identical, so nothing extra is redacted. None of the 9 words occurs in any blob in the repository's history.
+`tests/redaction.test.ts` and `tests/evidence-redaction.test.ts` fail if a committed fixture or evidence file has letters next to
+REDACTED, words left between BY and CERT/LIC, a certificate number, a non-placeholder respondent value or a listed word, or if a
+word redacted in a fixture appears unredacted in the same text in the evidence. Names in other positions cannot be found by a
+rule: **after re-recording, review new free text by hand** before committing, and add any word removed by hand to the list.
+`docs/evidence/inspector-*.json` is live output of `scripts/inspector-check.sh`. Regenerating it on 2026-11-03 brought back two
+of the hand-redacted words (the live data still has them). Since Fixes 5 the script runs every file it writes through
+`scripts/redact-evidence.ts` (the same rules and list), then runs both redaction test files and exits 1 if they fail.

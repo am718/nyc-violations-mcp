@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# Calls all 5 tools through the MCP Inspector CLI against LIVE NYC Open Data and saves raw output
-# to docs/evidence/. Needs network. Uses an in-memory cache and no app token.
+# Calls all 5 tools through the MCP Inspector CLI against LIVE NYC Open Data and saves the output to docs/evidence/,
+# redacted the same way as the recorded fixtures (scripts/redact.ts via scripts/redact-evidence.ts). It then runs the
+# redaction tests on the result and exits 1 if anything redacted in the fixtures came back. Needs network. Uses an
+# in-memory cache and no app token.
 set -uo pipefail
 cd "$(dirname "$0")/.."
 npm run --silent build
@@ -8,7 +10,12 @@ export NYC_VIOLATIONS_CACHE_DB=:memory:
 unset SOCRATA_APP_TOKEN
 mkdir -p docs/evidence
 insp() { npx --yes @modelcontextprotocol/inspector --cli node dist/src/index.js "$@"; }
-run() { local out=$1; shift; insp "$@" 2>/dev/null > "docs/evidence/$out.json"; echo "$out exit=$? bytes=$(wc -c < "docs/evidence/$out.json")"; }
+run() {
+  local out=$1; shift
+  insp "$@" 2>/dev/null > "docs/evidence/$out.json"; local code=$?
+  local red; red=$(node dist/scripts/redact-evidence.js "docs/evidence/$out.json" 2>&1 | sed 's/.*: //')
+  echo "$out exit=$code bytes=$(wc -c < "docs/evidence/$out.json") $red"
+}
 run inspector-tools-list --method tools/list
 run inspector-resolve_property --method tools/call --tool-name resolve_property --tool-arg 'address=350 5th Ave, Manhattan'
 run inspector-get_dob_violations --method tools/call --tool-name get_dob_violations --tool-arg bin=1015862 --tool-arg status=open --tool-arg limit=3
@@ -21,3 +28,10 @@ run inspector-error-wrong-address --method tools/call --tool-name resolve_proper
 run inspector-error-borough-only --method tools/call --tool-name resolve_property --tool-arg "address=Queens, NY"
 run inspector-error-ambiguous-address --method tools/call --tool-name resolve_property --tool-arg "address=Borough Hall"
 run inspector-status-any-case --method tools/call --tool-name get_dob_violations --tool-arg bin=1015862 --tool-arg status=OPEN --tool-arg limit=2
+# Proof that the regenerated evidence is clean: the same checks that guard the committed tree.
+if npx vitest run tests/redaction.test.ts tests/evidence-redaction.test.ts > /dev/null 2>&1; then
+  echo "redaction check: passed"
+else
+  echo "redaction check: FAILED (run: npx vitest run tests/redaction.test.ts tests/evidence-redaction.test.ts); do not commit docs/evidence"
+  exit 1
+fi
