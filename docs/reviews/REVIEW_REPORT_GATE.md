@@ -59,7 +59,7 @@ git ls-files | grep -iE '\.env$|\.sqlite|\.bundle|\.pem|\.key$|node_modules'   -
 git remote -v (source repo)  -> 0 lines; git branch -a -> main only; git status --short before this report -> clean
 ```
 
-Not counted as a leak: the author display name "AMQ" and the name of a webmail provider appear as descriptive text in review documents (checked in the earlier pass; the per-blob address patterns above found no actual address).
+Not counted as a leak: the author display name (part of the noreply identity) and the name of a webmail provider appear as descriptive text in review documents (checked in the earlier pass; the per-blob address patterns above found no actual address).
 
 ### Check 7: data
 

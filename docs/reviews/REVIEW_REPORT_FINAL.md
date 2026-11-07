@@ -35,7 +35,7 @@ The previous blockers are fixed and the fixes hold up. Placeholder BINs and BBLs
 | 21 | Comparison with other servers (README, COMPARISON.md) | Needs GitHub, Glama and npm, outside the allowed network scope | UNVERIFIED (README says the other entries came from listings) |
 | 22 | "Requires Node 20+" (README line 36, `package.json` engines) | Only Node 22.22 is available here; native module `better-sqlite3` was not built on Node 20 | UNVERIFIED and **not labeled** (Finding m3) |
 | 23 | "Datasets were updated within about a day when checked" (README) | `rowsUpdatedAt`: DOB 2026-11-01 18:38, HPD 2026-11-01 15:53, ECB 2026-10-31 17:10 versus today 2026-11-02 | PARTLY (ECB is more than a day old) |
-| 24 | No GPA; no "first"/"only" product claims | `grep` of README and docs for GPA, first, only, unique, best, novel: remaining hits are limitations or usage hints | VERIFIED |
+| 24 | No academic or personal details; no "first"/"only" product claims | `grep` of README and docs for academic/personal details and for first, only, unique, best, novel: remaining hits are limitations or usage hints | VERIFIED |
 | 25 | `.env.example` only; no secrets | Tree: `.env.example` with an empty value; history scan of 359 blobs for 8 secret patterns: 0 matches | VERIFIED |
 | 26 | Nothing pushed; no remote | `git remote -v` and `git config --get-regexp '^(remote|branch)\.'` both empty; one ref | VERIFIED |
 | 27 | Tool responses return text as data (README Safety) | Injection test: JSON-breaking, control-character and prompt-injection text in four fields: output still parses as the same keys, text capped (300 / 160 chars), `notice` and `untrusted_text_fields` precede the data, nothing else is requested afterward | VERIFIED |
@@ -51,7 +51,7 @@ Fixes 2 (REVIEW.md section 8):
 |---|---|---|
 | M1 placeholder BINs (and BBLs) | `7100bf1` | Yes. Files touched: `ids.ts`, `socrata.ts`, `resolve.ts`, `tests/placeholder-bins.test.ts`, docs. Behavior verified (claim 4); removing the schema refine, the GeoSearch check or the builder guard each fails tests. Note: the commit also swept in an unrelated file (`REVIEW_REPORT_INDEPENDENT.md`) |
 | M2 session link in all commit messages | whole history | Yes. 0 matches for a session-link trailer or URL in any commit message; 21 of 22 commits keep the `Co-Authored-By` line |
-| Local paths, username, session ids | `f2aa80c` + rewrite | Yes. 0 absolute paths, 0 temp-directory names, 0 `amq` outside the noreply identity in all blobs. Residual text only: the word "scratch directory" in `REVIEW.md` and one commit message, and a truncated a session link string in the independent report (no real id) |
+| Local paths, username, session ids | `f2aa80c` + rewrite | Yes. 0 absolute paths, 0 temp-directory names, 0 occurrences of the local username outside the noreply identity in all blobs. Residual text only: the word "scratch directory" in `REVIEW.md` and one commit message, and a truncated a session link string in the independent report (no real id) |
 | m1 status enum | `0781d03` | Yes. Published schema keeps `enum: [open, closed]`; `OPEN` works. Mutation (remove the lowercase preprocess) fails 5 tests |
 | m2 impossible dates | `0781d03` | Yes. BIN 1081244 (row with `19108124`): total 19, returned 18, `undated_excluded` 1. Dropping the calendar bounds fails 34 tests. Feb 29 in a non-leap year: 3 DOB rows, caught in code as documented |
 | m3 `limit` odd values | `0781d03` | Yes. `true`, `"0x10"`, `5.5`, `"007"`, `[5]`, `"1e2"`, `" 5"` all rejected; `"5"`, `25`, `"100"` accepted |
@@ -164,7 +164,7 @@ python scan of all 359 blobs reachable from all refs (250 distinct paths):
   temp-directory names                 0
   'scratch directory' (word only)             1   (REVIEW.md)
   personal email / gmail               0
-  'amq' as a bare word                 0
+  local username as a bare word        0
   AWS / GitHub / private key / Bearer / key=value / SOCRATA_APP_TOKEN value   0 each
   distinct email-like strings          ['163986147+am718@users.noreply.github.com', 'noreply@anthropic.com']
   ECB respondent_* values              185 placeholders, 0 unredacted

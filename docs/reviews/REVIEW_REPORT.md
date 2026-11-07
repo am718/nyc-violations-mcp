@@ -34,7 +34,7 @@ The build is solid on the things it was asked to be solid on. Query construction
 | 20 | README Claude Code config works | Not re-run. I did not re-run `claude -p --mcp-config` in this review | UNVERIFIED by me |
 | 21 | README Claude Desktop config works | Not testable here | UNVERIFIED |
 | 22 | `SOCRATA_APP_TOKEN` header path | Code read: header sent only to `data.cityofnewyork.us`, not in URL/cache key (`src/http.ts:42`). No test, no real token | UNVERIFIED (code looks right) |
-| 23 | No GPA; no "first"/"only" product claims in README | `grep -n -i -E "\bGPA\b|\bfirst\b|\bonly\b|\bunique\b|\bbest\b|novel"` on README/docs. The remaining hits are limitations ("Only DOB, ECB and HPD") and the "First call" usage hint, not superiority claims. `docs/COMPARISON.md:28` even says not to claim "first"/"only" | VERIFIED |
+| 23 | No academic or personal details; no "first"/"only" product claims in README | `grep -n -i -E` on README/docs for academic/personal details and for first, only, unique, best, novel. The remaining hits are limitations ("Only DOB, ECB and HPD") and the "First call" usage hint, not superiority claims. `docs/COMPARISON.md:28` even says not to claim "first"/"only" | VERIFIED |
 | 24 | No push; local only; no secrets | `git remote -v`: empty; one branch `main`; 8 commits; see Hygiene | VERIFIED |
 | 25 | Comparison with other MCP servers | Not re-checked (needs web research). nyc-property-intel was read by the builder only via GitHub; others from listings | UNVERIFIED |
 | 26 | 10 buildings' addresses resolve first try | Rechecked 3 only | PARTLY |
@@ -139,7 +139,7 @@ Other checks: the 13 ACTIVE rows with a disposition date still exist (13 today; 
 
 - `git remote -v`: empty. `git branch -a`: only `main`. 8 commits, authored by the user's personal address (m2).
 - Secrets: `git grep` across all revisions for key/secret/password/bearer/token patterns, excluding the variable names in docs and code, found nothing; no 40+ character high-entropy strings in history outside the lockfile and fixtures; `.env.example` is the only `.env*` file ever tracked and its value is empty; no `SOCRATA_APP_TOKEN` assignment with a value anywhere.
-- README has no GPA and no "first"/"only" claims (claim 23).
+- README has no academic or personal details and no "first"/"only" claims (claim 23).
 - Working tree clean before this report; the review created only temp files outside the repo.
 
 ## What I could not check and why
