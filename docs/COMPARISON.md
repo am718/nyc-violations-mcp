@@ -26,7 +26,7 @@ Not confirmed: how its Postgres mirror is populated in practice, hosted-service 
 - [srobbin/opengov-mcp-server](https://mcpservers.org/en/servers/srobbin/opengov-mcp-server): one `get_data` tool for any Socrata portal.
 - [MatchupLabs/nycapi](https://claudemarketplaces.com/mcp/matchup-labs/nycapi) (`@matchuplabs/nyc-api-mcp`): includes `get_building_violations`; needs an API key.
 
-## How this project differs (do not claim "first" or "only")
+## How this project differs
 Safe, bounded, tested, keyless: five narrow read-only tools over live NYC Open Data, a validated/escaped query builder,
 an overall response size cap, summaries first, SQLite TTL cache, offline tests with recorded fixtures including an
 injection test, and no required API key or database.
