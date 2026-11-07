@@ -2,6 +2,8 @@
  * 10-building validation. For each building: run building_compliance_summary (the real tool, live),
  * then independently recount with plain Socrata queries written WITHOUT the server's query builder
  * (simple `field=value` filters + count(*)). Prints a markdown table. Needs network.
+ * Every independent count is checked (status and shape) and retried with backoff; a failed count makes that building's row
+ * ERROR and the process exit code 1 (scripts/independent-count.ts). It never reports NaN as a mismatch.
  * Run: npm run validate > docs/validation-output.md
  */
 import { Cache } from "../src/cache.js";
@@ -9,6 +11,7 @@ import { loadSettings } from "../src/config.js";
 import { HttpClient } from "../src/http.js";
 import { SocrataClient } from "../src/socrata.js";
 import { buildingComplianceSummary } from "../src/tools/summary.js";
+import { independentCount } from "./independent-count.js";
 
 const BUILDINGS = [
   "350 5th Ave, Manhattan", // Empire State Building
@@ -27,7 +30,7 @@ const settings = { ...loadSettings({}), appToken: undefined };
 const http = new HttpClient({ fetch: (u, i) => fetch(u, i), cache: new Cache(":memory:", 600_000), settings });
 const r = { http, socrata: new SocrataClient(http) };
 const B = "https://data.cityofnewyork.us/resource";
-const sleep = (ms: number) => new Promise((x) => setTimeout(x, ms));
+const sleep = (ms: number) => new Promise<void>((x) => setTimeout(x, ms));
 
 /** Independent count: plain URL, no server code. */
 async function indep(dataset: string, filter: string, distinct = false): Promise<number> {
@@ -36,9 +39,7 @@ async function indep(dataset: string, filter: string, distinct = false): Promise
   const url = distinct && !filter.startsWith("$select=")
     ? `${B}/${dataset}.json?$select=${encodeURIComponent("count(distinct bin) as n")}&${filter}`
     : `${B}/${dataset}.json?${sel}${filter}`;
-  const res = await fetch(url);
-  const j = (await res.json()) as Record<string, string>[];
-  return Number(Object.values(j[0] ?? {})[0] ?? NaN);
+  return independentCount(url, { fetch: (u) => fetch(u), sleep }, dataset);
 }
 
 const rows: string[] = [];
@@ -93,7 +94,8 @@ for (const address of BUILDINGS) {
     console.error("done", address, ok ? "match" : "MISMATCH " + bad.join(","));
   } catch (e) {
     allMatch = false;
-    rows.push(`| ${address} | - | - | - | - | - | ERROR: ${e instanceof Error ? e.message.slice(0, 80) : "unknown"} |`);
+    console.error("FAILED", address, e instanceof Error ? e.message : "unknown error");
+    rows.push(`| ${address} | - | - | - | - | - | ERROR: ${e instanceof Error ? e.message.slice(0, 160) : "unknown"} |`);
   }
 }
 console.log(`Run at ${new Date().toISOString()}\n`);
@@ -102,3 +104,4 @@ console.log("|---|---|---|---|---|---|---|");
 console.log(rows.join("\n"));
 console.log(`\nAll rows match: ${allMatch}`);
 console.log("\n" + detail.join("\n"));
+if (!allMatch) process.exitCode = 1;
