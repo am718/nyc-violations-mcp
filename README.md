@@ -98,7 +98,9 @@ successfully (2026-11-02, see `docs/evidence/conversation-*.txt`; repeated 2026-
 ### Claude Desktop
 
 Add the same `mcpServers` block, with the same absolute path, to `~/Library/Application Support/Claude/claude_desktop_config.json`
-and restart Claude Desktop. **UNVERIFIED:** not tested in Claude Desktop (same stdio server and JSON shape as above).
+and restart Claude Desktop. Tested in Claude Desktop 4.23118.0, Nov 8, 2026: tool discovery, a live DOB lookup, borough-only
+rejection and placeholder-BIN rejection. That test used the absolute path of the Node 22 binary as `command`
+(`/opt/homebrew/opt/node@22/bin/node` on that Mac); a bare `"node"` was not tested in Desktop.
 
 ### MCP Inspector
 
@@ -151,6 +153,8 @@ HPD uses `Open`/`Close`. All three mappings live in `src/status.ts`.
 
 ## Data caveats and lag
 
+**Scope:** Uses NYC Open Data only. Open data can lag the city's live systems (DOB NOW, HPD, ECB), and results were not compared against them.
+
 - Open data can lag official systems (DOB BIS/DOB NOW, HPD Online, OATH), and how often each dataset is refreshed varies. Measured
   2026-11-03 16:41 UTC (`rowsUpdatedAt` from `/api/views/<id>.json`): DOB `3h2n-5cm9` last updated 2026-11-02 18:38 UTC, ECB `6bgk-3dad`
   2026-10-31 17:10 UTC (about 3 days earlier, although the portal lists it as "Every weekday"), HPD `wvxf-dwi5` 2026-11-02 15:52 UTC
@@ -173,14 +177,14 @@ HPD uses `Open`/`Close`. All three mappings live in `src/status.ts`.
 
 ## How this compares to other servers
 
-**UNVERIFIED:** checked once on 2026-11-01 and not re-checked since; third-party repos and listings change. Details and caveats in
-[`docs/COMPARISON.md`](docs/COMPARISON.md). I read only one repo's code (nyc-property-intel); the rest are from directory listings.
+**UNVERIFIED:** checked once on 2026-11-01 and not re-checked since; third-party repos and listings change. None of these servers
+was installed or run. Details and caveats in [`docs/COMPARISON.md`](docs/COMPARISON.md).
 
-- [ccedacero/nyc-property-intel](https://github.com/ccedacero/nyc-property-intel) (MIT, Python): a much broader due-diligence server
+- [ccedacero/nyc-property-intel](https://github.com/ccedacero/nyc-property-intel) (read from source, not run; MIT, Python): a much broader due-diligence server
   (18 tools: ownership, tax, ACRIS, permits, crime, comps...) over its own Postgres mirror of the data. Use it if you want that breadth.
 - [frogr/nyc-open-data-mcp](https://glama.ai/mcp/servers/frogr/nyc-open-data-mcp), [HT224/nycdata](https://glama.ai/mcp/servers/HT224/nycdata),
-  [srobbin/opengov-mcp-server](https://mcpservers.org/en/servers/srobbin/opengov-mcp-server): generic Socrata/open-data access; the agent writes the queries.
-- [MatchupLabs/nycapi](https://claudemarketplaces.com/mcp/matchup-labs/nycapi): property + violations tools behind an API key.
+  [srobbin/opengov-mcp-server](https://mcpservers.org/en/servers/srobbin/opengov-mcp-server) (all three based on public listing, not tested): generic Socrata/open-data access; the agent writes the queries.
+- [MatchupLabs/nycapi](https://claudemarketplaces.com/mcp/matchup-labs/nycapi) (based on public listing, not tested): property + violations tools behind an API key.
 
 This project is deliberately narrow: five violation tools, no database to run, no API key, a hard response-size cap,
 offline tests with recorded fixtures, and an explicit query-injection test.
@@ -205,6 +209,22 @@ offline tests with recorded fixtures, and an explicit query-injection test.
 - A multi-building (BBL-wide) summary for lots with several BINs.
 - Compare against DOB/HPD official systems and the web UI, and track dataset freshness over time.
 - Publish to npm and add CI (after review).
+
+## Verification (Nov 8, 2026)
+
+- **Tests:** fresh `npm ci`, `npm run build` (TypeScript type check) and `npm test` on Node 22.22.0: 14 test files, 535 tests passed,
+  offline. The no-network guard (`tests/setup-no-network.ts`, loaded for every test file) was active; `npm run check:network-guard`
+  showed a network call failing with the guard and passing without it.
+- **Stdio smoke test** of the built `dist/src/index.js`, no mocks, live data: all 5 tools listed; `resolve_property` with "Queens"
+  returned the borough-only error; `resolve_property` with BIN 1000000 was rejected as a placeholder; `get_dob_violations` for
+  BIN 1015862 returned live records (3 of 691). `scripts/inspector-check.sh` ran all 5 tools through the MCP Inspector and its
+  redaction check passed (the first attempt hit an HTTP 503 from NYC Open Data on the ECB call; the re-run passed).
+- **Claude Desktop 4.23118.0**, tested manually: the 5 tools were discovered, a live DOB lookup for the Empire State Building
+  returned records, "Queens" was rejected as borough-only, and BIN 1000000 was rejected as a placeholder.
+- **Secret scan** (no gitleaks installed; `grep` patterns for GitHub, Anthropic/OpenAI, AWS, Slack and Google keys, private keys,
+  bearer tokens, and values next to `SOCRATA_APP_TOKEN` / `appToken` / `X-App-Token`) over the tracked tree, `dist/` and the full
+  `git log -p --all` history: no secrets found. The only literal is a labelled fake value in a unit test. No `.env`, key file, cache
+  database or Claude Desktop config has ever been tracked, and every commit uses the GitHub noreply identity.
 
 ## Reviews and known weaknesses
 
